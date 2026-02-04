@@ -6,11 +6,103 @@
     <title>GameStore - Sua Loja de Jogos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos do modal (caixa de diálogo) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #6a11cb;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6a11cb;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+    </style>
 </head>
 <body>
+    <!-- Notificação -->
+    <div class="notification" id="notification"></div>
+
+    <!-- Modal de Carrinho -->
+    <div class="modal" id="cartModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCart()">&times;</span>
+            <h2><i class="fas fa-shopping-cart"></i> Meu Carrinho</h2>
+            <div id="cartItems"></div>
+            <div id="cartTotal" style="margin: 20px 0; font-size: 1.2rem;"></div>
+            <button class="btn btn-primary" onclick="checkout()" style="width: 100%;">
+                <i class="fas fa-credit-card"></i> Finalizar Compra (R$ <span id="totalValue">0</span>)
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Login -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeLogin()">&times;</span>
+            <h2><i class="fas fa-user"></i> Entrar na Conta</h2>
+            <div style="margin: 20px 0;">
+                <input type="email" id="loginEmail" placeholder="Seu email" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #6a11cb; background: #252547; color: white;">
+                <input type="password" id="loginPassword" placeholder="Sua senha" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #6a11cb; background: #252547; color: white;">
+                <button class="btn btn-primary" onclick="doLogin()" style="width: 100%; margin-top: 20px;">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+            </div>
+            <p style="text-align: center; color: #b0b0c0;">Ou crie uma conta:</p>
+            <button class="btn btn-secondary" onclick="showRegister()" style="width: 100%;">
+                <i class="fas fa-user-plus"></i> Criar Conta
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Cadastro -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeRegister()">&times;</span>
+            <h2><i class="fas fa-user-plus"></i> Criar Conta</h2>
+            <div style="margin: 20px 0;">
+                <input type="text" id="regName" placeholder="Seu nome completo" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #6a11cb; background: #252547; color: white;">
+                <input type="email" id="regEmail" placeholder="Seu email" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #6a11cb; background: #252547; color: white;">
+                <input type="password" id="regPassword" placeholder="Sua senha" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #6a11cb; background: #252547; color: white;">
+                <button class="btn btn-primary" onclick="doRegister()" style="width: 100%; margin-top: 20px;">
+                    <i class="fas fa-check"></i> Criar Conta
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Cabeçalho -->
     <header>
         <div class="container header-container">
@@ -19,23 +111,32 @@
                 <h1>Game<span>Store</span></h1>
             </div>
             
+            <!-- Barra de Busca -->
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Buscar jogos...">
+                <button onclick="searchGames()"><i class="fas fa-search"></i></button>
+            </div>
+            
             <nav>
                 <ul>
                     <li><a href="#inicio"><i class="fas fa-home"></i> Início</a></li>
                     <li><a href="#jogos"><i class="fas fa-gamepad"></i> Jogos</a></li>
-                    <li><a href="#destaques"><i class="fas fa-fire"></i> Destaques</a></li>
                     <li><a href="#ofertas"><i class="fas fa-tag"></i> Ofertas</a></li>
-                    <li><a href="#sobre"><i class="fas fa-info-circle"></i> Sobre</a></li>
+                    <li><a href="#categorias"><i class="fas fa-list"></i> Categorias</a></li>
                 </ul>
             </nav>
             
             <div class="icons-header">
-                <a href="#" class="cart-icon">
+                <a href="#" class="cart-icon" onclick="openCart()">
                     <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count">0</span>
+                    <span class="cart-count" id="cartCount">0</span>
                 </a>
-                <a href="#" class="user-icon">
+                <a href="#" class="user-icon" onclick="openLogin()">
                     <i class="fas fa-user"></i>
+                </a>
+                <a href="#" class="wishlist-icon" onclick="showWishlist()">
+                    <i class="fas fa-heart"></i>
+                    <span class="wishlist-count" id="wishlistCount">0</span>
                 </a>
             </div>
         </div>
@@ -48,14 +149,18 @@
                 <h2>Os melhores jogos estão aqui!</h2>
                 <p>Encontre os lançamentos mais aguardados, clássicos atemporais e ofertas exclusivas. Tudo em um só lugar para você.</p>
                 <div class="hero-buttons">
-                    <a href="#jogos" class="btn btn-primary">Ver Catálogo</a>
-                    <a href="#ofertas" class="btn btn-secondary">Ofertas da Semana</a>
+                    <button class="btn btn-primary" onclick="scrollToGames()">
+                        <i class="fas fa-gamepad"></i> Ver Catálogo
+                    </button>
+                    <button class="btn btn-secondary" onclick="showDailyOffer()">
+                        <i class="fas fa-gift"></i> Oferta do Dia
+                    </button>
                 </div>
             </div>
             <div class="hero-image">
                 <div class="placeholder-image">
                     <i class="fas fa-gamepad"></i>
-                    <p>Imagem de jogos e consoles</p>
+                    <p>GameStore - Sua Loja de Jogos</p>
                 </div>
             </div>
         </div>
@@ -70,6 +175,7 @@
             </div>
             
             <div class="games-grid">
+                <!-- Jogo 1 -->
                 <div class="game-card">
                     <div class="game-image">
                         <div class="placeholder-game">
@@ -87,11 +193,19 @@
                         </div>
                         <div class="game-price">
                             <span class="price">R$ 149,90</span>
-                            <button class="btn-cart">Adicionar <i class="fas fa-cart-plus"></i></button>
+                            <div class="game-actions">
+                                <button class="btn-cart" onclick="addToCart('Cyberpunk 2077', 149.90)">
+                                    <i class="fas fa-cart-plus"></i> Comprar
+                                </button>
+                                <button class="btn-wishlist" onclick="addToWishlist('Cyberpunk 2077')">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Jogo 2 -->
                 <div class="game-card">
                     <div class="game-image">
                         <div class="placeholder-game">
@@ -100,18 +214,26 @@
                         <span class="game-tag bestseller">Mais Vendido</span>
                     </div>
                     <div class="game-info">
-                        <h3>The Legend of Zelda</h3>
+                        <h3>The Legend of Zelda: Tears of the Kingdom</h3>
                         <p>A nova aventura épica de Link em Hyrule.</p>
                         <div class="game-platforms">
                             <span class="platform switch">Switch</span>
                         </div>
                         <div class="game-price">
                             <span class="price">R$ 299,90</span>
-                            <button class="btn-cart">Adicionar <i class="fas fa-cart-plus"></i></button>
+                            <div class="game-actions">
+                                <button class="btn-cart" onclick="addToCart('The Legend of Zelda: Tears of the Kingdom', 299.90)">
+                                    <i class="fas fa-cart-plus"></i> Comprar
+                                </button>
+                                <button class="btn-wishlist" onclick="addToWishlist('The Legend of Zelda: Tears of the Kingdom')">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Jogo 3 -->
                 <div class="game-card">
                     <div class="game-image">
                         <div class="placeholder-game">
@@ -130,11 +252,19 @@
                         <div class="game-price">
                             <span class="price old">R$ 299,90</span>
                             <span class="price">R$ 209,90</span>
-                            <button class="btn-cart">Adicionar <i class="fas fa-cart-plus"></i></button>
+                            <div class="game-actions">
+                                <button class="btn-cart" onclick="addToCart('EA Sports FC 24', 209.90)">
+                                    <i class="fas fa-cart-plus"></i> Comprar
+                                </button>
+                                <button class="btn-wishlist" onclick="addToWishlist('EA Sports FC 24')">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
+                <!-- Jogo 4 -->
                 <div class="game-card">
                     <div class="game-image">
                         <div class="placeholder-game">
@@ -149,14 +279,23 @@
                         </div>
                         <div class="game-price">
                             <span class="price">R$ 249,90</span>
-                            <button class="btn-cart">Adicionar <i class="fas fa-cart-plus"></i></button>
+                            <div class="game-actions">
+                                <button class="btn-cart" onclick="addToCart('God of War: Ragnarok', 249.90)">
+                                    <i class="fas fa-cart-plus"></i> Comprar
+                                </button>
+                                <button class="btn-wishlist" onclick="addToWishlist('God of War: Ragnarok')">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="view-more">
-                <a href="#" class="btn btn-secondary">Ver Mais Jogos</a>
+                <button class="btn btn-secondary" onclick="loadMoreGames()">
+                    <i class="fas fa-plus"></i> Carregar Mais Jogos
+                </button>
             </div>
         </div>
     </section>
@@ -183,7 +322,9 @@
                                 <span id="minutes">45</span>m
                             </div>
                         </div>
-                        <a href="#" class="btn btn-primary">Aproveitar Ofertas</a>
+                        <button class="btn btn-primary" onclick="showBirthdayOffers()">
+                            <i class="fas fa-birthday-cake"></i> Aproveitar Ofertas
+                        </button>
                     </div>
                 </div>
                 
@@ -192,45 +333,41 @@
                     <div class="offer-content">
                         <h3>Pacote Gamer</h3>
                         <p>Leve 3 jogos por apenas R$ 299,90. Escolha entre mais de 50 opções.</p>
-                        <a href="#" class="btn btn-primary">Montar Pacote</a>
+                        <button class="btn btn-primary" onclick="createBundle()">
+                            <i class="fas fa-box"></i> Montar Pacote
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Seção Sobre -->
-    <section class="about-section" id="sobre">
+    <!-- Seção Categorias -->
+    <section class="categories" id="categorias">
         <div class="container">
-            <div class="about-content">
-                <div class="about-text">
-                    <h2>Sobre a GameStore</h2>
-                    <p>Somos a maior loja de jogos do Brasil, com mais de 10 anos no mercado. Oferecemos os melhores preços, lançamentos simultâneos com o exterior e uma experiência de compra única.</p>
-                    <p>Nosso catálogo possui mais de 5.000 títulos para todas as plataformas: PlayStation, Xbox, Nintendo Switch e PC.</p>
-                    <div class="about-features">
-                        <div class="feature">
-                            <i class="fas fa-shipping-fast"></i>
-                            <h4>Entrega Rápida</h4>
-                            <p>Receba em até 24h nas capitais</p>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-shield-alt"></i>
-                            <h4>Compra Segura</h4>
-                            <p>Seus dados protegidos</p>
-                        </div>
-                        <div class="feature">
-                            <i class="fas fa-headset"></i>
-                            <h4>Suporte 24/7</h4>
-                            <p>Atendimento sempre disponível</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="about-image">
-                    <div class="placeholder-about">
-                        <i class="fas fa-store"></i>
-                        <p>Nossa Loja Virtual</p>
-                    </div>
-                </div>
+            <div class="section-header">
+                <h2>Categorias</h2>
+                <p>Encontre jogos por gênero</p>
+            </div>
+            <div class="categories-grid">
+                <button class="category-btn" onclick="filterByCategory('Ação')">
+                    <i class="fas fa-fist-raised"></i> Ação
+                </button>
+                <button class="category-btn" onclick="filterByCategory('Aventura')">
+                    <i class="fas fa-mountain"></i> Aventura
+                </button>
+                <button class="category-btn" onclick="filterByCategory('RPG')">
+                    <i class="fas fa-dragon"></i> RPG
+                </button>
+                <button class="category-btn" onclick="filterByCategory('Esportes')">
+                    <i class="fas fa-futbol"></i> Esportes
+                </button>
+                <button class="category-btn" onclick="filterByCategory('Estratégia')">
+                    <i class="fas fa-chess"></i> Estratégia
+                </button>
+                <button class="category-btn" onclick="filterByCategory('Terror')">
+                    <i class="fas fa-ghost"></i> Terror
+                </button>
             </div>
         </div>
     </section>
@@ -246,30 +383,20 @@
                     </div>
                     <p>Sua loja de jogos favorita com os melhores preços e lançamentos.</p>
                     <div class="social-icons">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-discord"></i></a>
+                        <a href="#" onclick="shareOnFacebook()"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" onclick="shareOnTwitter()"><i class="fab fa-twitter"></i></a>
+                        <a href="#" onclick="shareOnInstagram()"><i class="fab fa-instagram"></i></a>
+                        <a href="#" onclick="joinDiscord()"><i class="fab fa-discord"></i></a>
                     </div>
                 </div>
                 
                 <div class="footer-column">
                     <h4>Links Rápidos</h4>
                     <ul>
-                        <li><a href="#inicio">Início</a></li>
-                        <li><a href="#jogos">Jogos</a></li>
-                        <li><a href="#ofertas">Ofertas</a></li>
-                        <li><a href="#sobre">Sobre Nós</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-column">
-                    <h4>Plataformas</h4>
-                    <ul>
-                        <li><a href="#">PlayStation</a></li>
-                        <li><a href="#">Xbox</a></li>
-                        <li><a href="#">Nintendo Switch</a></li>
-                        <li><a href="#">PC Gaming</a></li>
+                        <li><button class="footer-link" onclick="scrollToTop()">Início</button></li>
+                        <li><button class="footer-link" onclick="scrollToGames()">Jogos</button></li>
+                        <li><button class="footer-link" onclick="showAllOffers()">Ofertas</button></li>
+                        <li><button class="footer-link" onclick="openSupport()">Suporte</button></li>
                     </ul>
                 </div>
                 
@@ -277,15 +404,27 @@
                     <h4>Contato</h4>
                     <ul class="contact-info">
                         <li><i class="fas fa-map-marker-alt"></i> Av. dos Games, 1234 - São Paulo, SP</li>
-                        <li><i class="fas fa-phone"></i> (11) 99999-9999</li>
-                        <li><i class="fas fa-envelope"></i> contato@gamestore.com.br</li>
+                        <li><button class="footer-link" onclick="callPhone()"><i class="fas fa-phone"></i> (11) 99999-9999</button></li>
+                        <li><button class="footer-link" onclick="sendEmail()"><i class="fas fa-envelope"></i> contato@gamestore.com.br</button></li>
                     </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h4>Newsletter</h4>
+                    <p>Receba ofertas exclusivas</p>
+                    <div class="newsletter">
+                        <input type="email" id="newsletterEmail" placeholder="Seu email">
+                        <button class="btn btn-primary" onclick="subscribeNewsletter()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2023 GameStore. Todos os direitos reservados.</p>
-                <p>Desenvolvido com <i class="fas fa-heart"></i> para gamers</p>
+                <p>&copy; 2024 GameStore. Todos os direitos reservados.</p>
+                <button class="footer-link" onclick="openTerms()">Termos de Uso</button>
+                <button class="footer-link" onclick="openPrivacy()">Política de Privacidade</button>
             </div>
         </div>
     </footer>
