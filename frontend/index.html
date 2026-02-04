@@ -489,7 +489,7 @@
                 const paginas = ['inicio', 'sobre', 'contato'];
                 
                 for (const pagina of paginas) {
-                    const res = await fetch(`/api/admin/conteudo/${pagina}`);
+                    const res = await fetch(`/api/admin/paginas/${pagina}`);
                     if (res.ok) {
                         const data = await res.json();
                         if (data.conteudo) {
