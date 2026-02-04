@@ -62,6 +62,8 @@
         .main-content {
             padding: 40px;
             overflow-y: auto;
+            max-width: 1100px;
+            margin: 0 auto;
         }
         .section {
             display: none; /* Esconde todas as seções por padrão */
@@ -136,6 +138,26 @@
         .trumbowyg-dropdown button:hover {
             background-color: #444;
         }
+         
+         /* Correções de largura do editor para não "espremir" no canto */
+         .trumbowyg-box,
+         .trumbowyg-editor {
+             width: 100% !important;
+             display: block;
+             box-sizing: border-box;
+         }
+         /* Ocultar textarea quando o editor visual está ativo para não afetar layout */
+         .trumbowyg-box.trumbowyg-editor-visible .trumbowyg-textarea {
+             display: none !important;
+             width: 100% !important;
+             height: 0 !important;
+             padding: 0 !important;
+             margin: 0 !important;
+         }
+         /* Garantir que o container do editor ocupe toda a largura disponível */
+         #paginas .form-group {
+             max-width: 100%;
+         }
     </style>
 </head>
 <body>
