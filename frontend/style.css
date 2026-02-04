@@ -1,0 +1,653 @@
+/*
+  ARQUIVO: frontend/style.css
+  DESCRIÇÃO: Estilos CSS da GameStore v2.0
+  
+  Este arquivo contém toda a estilização do site.
+  Cada seção está comentada em português para fins educacionais.
+*/
+
+/* ============================================
+   RESET E ESTILOS BÁSICOS
+   ============================================ */
+
+* {
+    /* Remove margens padrão do navegador */
+    margin: 0;
+    padding: 0;
+    /* box-sizing: border-box garante que padding não aumenta o tamanho */
+    box-sizing: border-box;
+}
+
+/* Estilos do corpo da página */
+body {
+    /* Fonte padrão em toda a página */
+    font-family: 'Poppins', Arial, sans-serif;
+    
+    /* Espaçamento entre linhas para melhor legibilidade */
+    line-height: 1.6;
+    
+    /* Cor do texto principal */
+    color: #333;
+    
+    /* Cor de fundo */
+    background-color: #f5f5f5;
+}
+
+/* ============================================
+   CONTAINER (centralizador)
+   ============================================ */
+
+.container {
+    /* Largura máxima para melhor legibilidade */
+    max-width: 1200px;
+    
+    /* Centrar na página (auto nas laterais) */
+    margin: 0 auto;
+    
+    /* Padding nas laterais para não colar nas bordas */
+    padding: 0 20px;
+}
+
+/* ============================================
+   CABEÇALHO (HEADER)
+   ============================================ */
+
+.cabecalho {
+    /* Cor de fundo azul escuro */
+    background-color: #1a1a2e;
+    
+    /* Texto branco */
+    color: white;
+    
+    /* Espaçamento interno */
+    padding: 20px 0;
+    
+    /* Grudar no topo ao rolar */
+    position: sticky;
+    top: 0;
+    
+    /* Aparecer acima de outros elementos */
+    z-index: 100;
+    
+    /* Sombra para destacar */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Flex no header para alinhar itens em linha */
+.cabecalho .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+}
+
+/* Logo */
+.logo {
+    /* Tamanho grande */
+    font-size: 1.8rem;
+    
+    /* Negrito */
+    font-weight: 700;
+    
+    /* Cor roxa */
+    color: #6a11cb;
+    
+    /* Não selecionável (UX melhor) */
+    user-select: none;
+}
+
+/* ============================================
+   MENU DE NAVEGAÇÃO
+   ============================================ */
+
+.menu ul {
+    /* Remove bolinhas da lista */
+    list-style: none;
+    
+    /* Transforma em linha horizontal */
+    display: flex;
+    
+    /* Espaço entre itens */
+    gap: 30px;
+}
+
+.menu a {
+    /* Cor branca */
+    color: white;
+    
+    /* Remove sublinhado */
+    text-decoration: none;
+    
+    /* Transição suave */
+    transition: all 0.3s ease;
+}
+
+.menu a:hover {
+    /* Cor roxo ao passar mouse */
+    color: #6a11cb;
+}
+
+/* ============================================
+   ÁREA DE USUÁRIO
+   ============================================ */
+
+.area-usuario {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-left: auto;
+}
+
+.btns-login {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-login, .btn-registrar {
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid white;
+    color: white;
+    background: transparent;
+}
+
+.btn-login:hover {
+    background: white;
+    color: #667eea;
+}
+
+.btn-registrar {
+    background: #667eea;
+    border-color: #667eea;
+}
+
+.btn-registrar:hover {
+    background: #764ba2;
+    border-color: #764ba2;
+}
+
+.info-usuario {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-weight: 600;
+}
+
+.nome-usuario {
+    color: white;
+}
+
+.icone-favoritos, .icone-carrinho {
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.icone-favoritos:hover, .icone-carrinho:hover {
+    color: #ffd93d;
+}
+
+.btn-logout {
+    padding: 8px 16px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+    background: #ff3838;
+}
+
+/* ============================================
+   SEÇÃO HERO (INÍCIO)
+   ============================================ */
+
+.hero {
+    /* Degradê de cor */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    
+    /* Texto branco */
+    color: white;
+    
+    /* Espaçamento */
+    padding: 100px 0;
+    
+    /* Texto centralizado */
+    text-align: center;
+}
+
+.hero h2 {
+    /* Tamanho grande */
+    font-size: 2.5rem;
+    
+    /* Espaçamento */
+    margin-bottom: 20px;
+}
+
+.hero p {
+    /* Fonte maior */
+    font-size: 1.1rem;
+    
+    /* Espaçamento */
+    margin-bottom: 30px;
+}
+
+/* ============================================
+   BOTÕES GERAIS
+   ============================================ */
+
+.btn {
+    /* Padding */
+    padding: 12px 24px;
+    
+    /* Gradiente */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    
+    /* Cor branca */
+    color: white;
+    
+    /* Sem borda */
+    border: none;
+    
+    /* Arredondado */
+    border-radius: 5px;
+    
+    /* Fonte */
+    font-weight: 600;
+    cursor: pointer;
+    
+    /* Transição */
+    transition: all 0.3s ease;
+    
+    /* Inline block para aceitar padding */
+    display: inline-block;
+    text-decoration: none;
+}
+
+.btn:hover {
+    /* Sombra ao passar mouse */
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    
+    /* Levantar um pouco */
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   SEÇÃO DE FILTROS
+   ============================================ */
+
+.filtros {
+    background: white;
+    padding: 20px 0;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.filtros h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.opcoes-filtro {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.opcoes-filtro select, .opcoes-filtro input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: inherit;
+}
+
+.opcoes-filtro select:focus, .opcoes-filtro input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+}
+
+/* ============================================
+   SEÇÃO DE JOGOS (GRID)
+   ============================================ */
+
+.jogos {
+    padding: 40px 0;
+}
+
+.jogos h2 {
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.grid-jogos {
+    /* Grid responsivo */
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.carregando {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-size: 1.1rem;
+}
+
+.vazio {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    background: white;
+    border-radius: 10px;
+}
+
+/* ============================================
+   CARD DE JOGO
+   ============================================ */
+
+.card-jogo {
+    /* Fundo branco */
+    background: white;
+    
+    /* Arredondado */
+    border-radius: 10px;
+    
+    /* Sombra */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    
+    /* Overflow hidden para imagem não sair do card */
+    overflow: hidden;
+    
+    /* Transição */
+    transition: all 0.3s ease;
+}
+
+.card-jogo:hover {
+    /* Levantar ao passar mouse */
+    transform: translateY(-5px);
+    
+    /* Aumentar sombra */
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-jogo img {
+    /* Largura 100% do card */
+    width: 100%;
+    
+    /* Altura fixa */
+    height: 300px;
+    
+    /* Manter proporção da imagem */
+    object-fit: cover;
+}
+
+.card-jogo h3 {
+    color: #333;
+    margin: 15px 15px 10px;
+}
+
+.card-jogo p {
+    color: #666;
+    margin: 0 15px 10px;
+    font-size: 0.9rem;
+}
+
+.card-jogo .descricao {
+    font-size: 0.9rem;
+    color: #777;
+    margin-bottom: 10px;
+}
+
+.detalhes {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.genero, .classificacao {
+    background: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+.preco {
+    color: #667eea;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin: 10px 15px;
+}
+
+.botoes-card {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.botoes-card .btn {
+    flex: 1;
+    display: block;
+    text-align: center;
+    padding: 10px;
+    margin: 0;
+}
+
+.btn-favorito {
+    padding: 10px;
+    background: white;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    font-size: 1.2rem;
+}
+
+.btn-favorito:hover {
+    background: #fff5f5;
+    border-color: #ff4757;
+}
+
+/* ============================================
+   SEÇÃO SOBRE
+   ============================================ */
+
+.sobre {
+    padding: 40px 0;
+    background: white;
+    margin: 40px 0;
+    border-radius: 10px;
+}
+
+.sobre h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.sobre > div > p {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.info-sobre {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.item-sobre {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #667eea;
+}
+
+.item-sobre h3 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.item-sobre p {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* ============================================
+   SEÇÃO CONTATO
+   ============================================ */
+
+.contato {
+    padding: 40px 0;
+}
+
+.contato h2 {
+    color: #333;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.form-contato {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.grupo-form {
+    margin-bottom: 20px;
+}
+
+.grupo-form label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 600;
+}
+
+.grupo-form input,
+.grupo-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.grupo-form input:focus,
+.grupo-form textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+}
+
+.grupo-form textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.grupo-form .btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* ============================================
+   RODAPÉ
+   ============================================ */
+
+.rodape {
+    background-color: #1a1a2e;
+    color: white;
+    padding: 30px 0;
+    margin-top: 40px;
+}
+
+.rodape p {
+    text-align: center;
+    margin: 10px 0;
+}
+
+/* ============================================
+   RESPONSIVO (Mobile)
+   ============================================ */
+
+@media (max-width: 768px) {
+    .header-top {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+    }
+
+    .menu ul {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .hero {
+        padding: 50px 0;
+    }
+
+    .hero h2 {
+        font-size: 1.8rem;
+    }
+
+    .grid-jogos {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .info-sobre {
+        grid-template-columns: 1fr;
+    }
+
+    .form-contato {
+        padding: 20px;
+    }
+}
+
+/* ============================================
+   MENSAGENS DE ERRO/SUCESSO
+   ============================================ */
+
+.mensagem {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    display: none;
+    border-left: 4px solid;
+}
+
+.mensagem.erro {
+    background-color: #ffe0e0;
+    color: #c41e3a;
+    border-left-color: #c41e3a;
+}
+
+.mensagem.sucesso {
+    background-color: #e0ffe0;
+    color: #1e7c1e;
+    border-left-color: #1e7c1e;
+}

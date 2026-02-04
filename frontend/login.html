@@ -1,0 +1,506 @@
+<!--
+  ARQUIVO: frontend/login.html
+  DESCRIÇÃO: Página de login e registro
+  
+  Esta página permite que usuários façam login ou criem nova conta
+  Ambos os formulários enviam dados para o servidor (server.js)
+-->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GameStore</title>
+    <style>
+        /*
+          CSS para página de login
+          Comentado em português para fins educacionais
+        */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Linear gradient = degradê de cor de um lado a outro */
+        }
+
+        .container-login {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            /* box-shadow = sombra para efeito de profundidade */
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        /* Guias de abas (Login / Registro) */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #999;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.ativo {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-conteudo {
+            display: none;
+        }
+
+        .tab-conteudo.ativo {
+            display: block;
+        }
+
+        /* Grupo de formulário */
+        .grupo-form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            font-size: 1rem;
+            /* Transição suave ao focar */
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Botão de envio */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Mensagens de erro/sucesso */
+        .mensagem {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .mensagem.erro {
+            background-color: #ffe0e0;
+            color: #c41e3a;
+            display: block;
+            border-left: 4px solid #c41e3a;
+        }
+
+        .mensagem.sucesso {
+            background-color: #e0ffe0;
+            color: #1e7c1e;
+            display: block;
+            border-left: 4px solid #1e7c1e;
+        }
+
+        .indicador-forca {
+            margin-top: 5px;
+            height: 5px;
+            background: #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .barra-forca {
+            height: 100%;
+            width: 0%;
+            background: red;
+            transition: all 0.3s ease;
+        }
+
+        .forca-fraca { background: red !important; }
+        .forca-media { background: orange !important; }
+        .forca-forte { background: green !important; }
+
+        .voltar {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .voltar a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-login">
+        <!-- Logo -->
+        <h1>🎮 GameStore</h1>
+
+        <!-- Abas (Login / Registro) -->
+        <div class="tabs">
+            <button class="tab-btn ativo" onclick="trocarAba('login')">
+                Login
+            </button>
+            <button class="tab-btn" onclick="trocarAba('registro')">
+                Criar Conta
+            </button>
+        </div>
+
+        <!-- ====== ABA 1: LOGIN ====== -->
+        <div id="login" class="tab-conteudo ativo">
+            <form id="formLogin" onsubmit="handleLogin(event)">
+                <!-- Mensagem de erro/sucesso -->
+                <div id="mensagemLogin" class="mensagem"></div>
+
+                <!-- Campo Email -->
+                <div class="grupo-form">
+                    <label for="emailLogin">Email:</label>
+                    <input 
+                        type="email" 
+                        id="emailLogin" 
+                        placeholder="seu@email.com"
+                        required
+                    >
+                </div>
+
+                <!-- Campo Senha -->
+                <div class="grupo-form">
+                    <label for="senhaLogin">Senha:</label>
+                    <input 
+                        type="password" 
+                        id="senhaLogin" 
+                        placeholder="Sua senha"
+                        required
+                    >
+                </div>
+
+                <!-- Botão -->
+                <button type="submit" class="btn">
+                    Entrar
+                </button>
+            </form>
+        </div>
+
+        <!-- ====== ABA 2: REGISTRO ====== -->
+        <div id="registro" class="tab-conteudo">
+            <form id="formRegistro" onsubmit="handleRegistro(event)">
+                <!-- Mensagem de erro/sucesso -->
+                <div id="mensagemRegistro" class="mensagem"></div>
+
+                <!-- Campo Nome -->
+                <div class="grupo-form">
+                    <label for="nome">Seu Nome:</label>
+                    <input 
+                        type="text" 
+                        id="nome" 
+                        placeholder="João Silva"
+                        required
+                        minlength="3"
+                    >
+                </div>
+
+                <!-- Campo Email -->
+                <div class="grupo-form">
+                    <label for="emailRegistro">Email:</label>
+                    <input 
+                        type="email" 
+                        id="emailRegistro" 
+                        placeholder="seu@gmail.com ou seu@hotmail.com"
+                        required
+                    >
+                    <!-- Dica sobre domínios permitidos -->
+                    <small style="color: #999; margin-top: 5px; display: block;">
+                        Use Gmail, Hotmail, Outlook ou Yahoo
+                    </small>
+                </div>
+
+                <!-- Campo Senha -->
+                <div class="grupo-form">
+                    <label for="senhaRegistro">Senha:</label>
+                    <input 
+                        type="password" 
+                        id="senhaRegistro" 
+                        placeholder="Mínimo 8 caracteres"
+                        required
+                        minlength="8"
+                        onchange="verificarForcaSenha()"
+                    >
+                    <!-- Indicador de força da senha -->
+                    <div class="indicador-forca">
+                        <div id="barraForca" class="barra-forca"></div>
+                    </div>
+                    <small id="textoForca" style="color: #999; margin-top: 5px; display: block;">
+                        Senha fraca
+                    </small>
+                </div>
+
+                <!-- Dicas de senha -->
+                <small style="color: #999; display: block; margin-bottom: 20px;">
+                    ✓ Mínimo 8 caracteres<br>
+                    ✓ Maiúscula, minúscula, número e símbolo
+                </small>
+
+                <!-- Botão -->
+                <button type="submit" class="btn">
+                    Criar Conta
+                </button>
+            </form>
+        </div>
+
+        <!-- Link para voltar -->
+        <div class="voltar">
+            <a href="/">← Voltar ao site</a>
+        </div>
+    </div>
+
+    <!-- ====== JAVASCRIPT ====== -->
+    <script>
+        /*
+          ARQUIVO: frontend/login.html (JavaScript)
+          DESCRIÇÃO: Lógica de login e registro
+          
+          Este código roda no navegador do usuário.
+          Valida dados e envia para o servidor.
+        */
+
+        // ============================================
+        // FUNÇÃO: Trocar entre abas (Login / Registro)
+        // ============================================
+        function trocarAba(abaDestino) {
+            // Ocultar todas as abas
+            document.querySelectorAll('.tab-conteudo').forEach(aba => {
+                aba.classList.remove('ativo');
+            });
+
+            // Desativar todos os botões de abas
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('ativo');
+            });
+
+            // Mostrar aba selecionada
+            document.getElementById(abaDestino).classList.add('ativo');
+
+            // Ativar botão da aba selecionada
+            event.target.classList.add('ativo');
+        }
+
+        // ============================================
+        // FUNÇÃO: Mostrar mensagem
+        // ============================================
+        function mostrarMensagem(elementoId, texto, tipo) {
+            /*
+              elementoId = ID do elemento onde mostrar
+              texto = mensagem a exibir
+              tipo = 'erro' ou 'sucesso'
+            */
+            const elemento = document.getElementById(elementoId);
+            
+            // Limpar classes
+            elemento.classList.remove('erro', 'sucesso');
+            
+            // Adicionar classe apropriada
+            elemento.classList.add(tipo);
+            
+            // Escrever texto
+            elemento.textContent = texto;
+        }
+
+        // ============================================
+        // FUNÇÃO: Verificar força da senha
+        // ============================================
+        function verificarForcaSenha() {
+            const senha = document.getElementById('senhaRegistro').value;
+            const barra = document.getElementById('barraForca');
+            const texto = document.getElementById('textoForca');
+
+            let forca = 0;
+
+            // Verificar critérios
+            if (senha.length >= 8) forca++;           // Tamanho mínimo
+            if (/[A-Z]/.test(senha)) forca++;         // Maiúscula
+            if (/[a-z]/.test(senha)) forca++;         // Minúscula
+            if (/[0-9]/.test(senha)) forca++;         // Número
+            if (/[!@#$%^&*]/.test(senha)) forca++;    // Caractere especial
+
+            // Atualizar barra de progresso
+            const percentual = (forca / 5) * 100;
+            barra.style.width = percentual + '%';
+
+            // Mudar cor baseado na força
+            barra.classList.remove('forca-fraca', 'forca-media', 'forca-forte');
+
+            if (forca <= 2) {
+                barra.classList.add('forca-fraca');
+                texto.textContent = '❌ Senha fraca';
+            } else if (forca <= 4) {
+                barra.classList.add('forca-media');
+                texto.textContent = '⚠️ Senha média';
+            } else {
+                barra.classList.add('forca-forte');
+                texto.textContent = '✅ Senha forte';
+            }
+        }
+
+        // ============================================
+        // FUNÇÃO: Handle Login
+        // ============================================
+        async function handleLogin(event) {
+            /*
+              event.preventDefault() = impedir recarregar página
+            */
+            event.preventDefault();
+
+            const email = document.getElementById('emailLogin').value;
+            const senha = document.getElementById('senhaLogin').value;
+
+            console.log('🔐 Tentando fazer login com:', email);
+
+            try {
+                // Enviar requisição POST para servidor
+                const resposta = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        senha: senha
+                    })
+                });
+
+                // Ler resposta do servidor
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    // ✅ Login bem-sucedido
+                    console.log('✅ Login realizado!');
+                    mostrarMensagem('mensagemLogin', '✅ ' + dados.mensagem, 'sucesso');
+
+                    // Guardar token no localStorage (para próximas requisições)
+                    localStorage.setItem('token', dados.token);
+                    localStorage.setItem('usuario', JSON.stringify(dados.usuario));
+
+                    // Redirecionar para página principal após 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    // ❌ Erro no login
+                    console.error('❌ Erro:', dados.erro);
+                    mostrarMensagem('mensagemLogin', '❌ ' + dados.erro, 'erro');
+                }
+
+            } catch (erro) {
+                console.error('❌ Erro na requisição:', erro);
+                mostrarMensagem('mensagemLogin', '❌ Erro ao conectar com servidor', 'erro');
+            }
+        }
+
+        // ============================================
+        // FUNÇÃO: Handle Registro
+        // ============================================
+        async function handleRegistro(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('emailRegistro').value;
+            const senha = document.getElementById('senhaRegistro').value;
+
+            console.log('📝 Tentando registrar novo usuário:', email);
+
+            try {
+                const resposta = await fetch('/api/auth/registro', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome: nome,
+                        email: email,
+                        senha: senha
+                    })
+                });
+
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    // ✅ Registro bem-sucedido
+                    console.log('✅ Registro realizado!');
+                    mostrarMensagem('mensagemRegistro', '✅ ' + dados.mensagem, 'sucesso');
+
+                    // Guardar token
+                    localStorage.setItem('token', dados.token);
+                    localStorage.setItem('usuario', JSON.stringify(dados.usuario));
+
+                    // Redirecionar após 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    // ❌ Erro no registro
+                    console.error('❌ Erro:', dados.erro);
+                    mostrarMensagem('mensagemRegistro', '❌ ' + dados.erro, 'erro');
+                }
+
+            } catch (erro) {
+                console.error('❌ Erro na requisição:', erro);
+                mostrarMensagem('mensagemRegistro', '❌ Erro ao conectar com servidor', 'erro');
+            }
+        }
+    </script>
+</body>
+</html>

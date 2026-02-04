@@ -1,0 +1,511 @@
+<!--
+  ARQUIVO: frontend/index.html
+  DESCRIÇÃO: Página principal da GameStore v2.0
+  
+  Alterações em relação à v1.0:
+  ✓ Integração com API backend
+  ✓ Sistema de autenticação
+  ✓ Carrinho de compras
+  ✓ Favoritos/Wishlist
+  ✓ Produtos carregados do banco de dados
+  ✓ Checkout funcional
+  
+  TODO: Adicionar comentários em português em cada seção
+-->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameStore - Loja de Jogos Online</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- CABEÇALHO DO SITE -->
+    <header class="cabecalho">
+        <div class="container">
+            <div class="header-top">
+                <h1 class="logo">🎮 GameStore</h1>
+                
+                <!-- Menu de navegação -->
+                <nav class="menu">
+                    <ul>
+                        <li><a href="#inicio">Início</a></li>
+                        <li><a href="#jogos">Jogos</a></li>
+                        <li><a href="#sobre">Sobre</a></li>
+                        <li><a href="#contato">Contato</a></li>
+                    </ul>
+                </nav>
+
+                <!-- Área de usuário / Login -->
+                <div class="area-usuario">
+                    <!-- Botões antes de logar -->
+                    <div id="naologado" class="btns-login">
+                        <a href="/frontend/login.html" class="btn-login">Login</a>
+                        <a href="/frontend/login.html" class="btn-registrar">Registrar</a>
+                    </div>
+
+                    <!-- Área após logar -->
+                    <div id="logado" class="info-usuario" style="display: none;">
+                        <!-- Nome do usuário -->
+                        <span id="nomeUsuario" class="nome-usuario"></span>
+                        
+                        <!-- Ícones de ações -->
+                        <a href="/frontend/favoritos.html" class="icone-favoritos" title="Favoritos">
+                            ❤️ <span id="contadorFavoritos">0</span>
+                        </a>
+                        
+                        <a href="/frontend/carrinho.html" class="icone-carrinho" title="Carrinho">
+                            🛒 <span id="contadorCarrinho">0</span>
+                        </a>
+                        
+                        <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main>
+        <!-- SEÇÃO HERO (INÍCIO) -->
+        <section id="inicio" class="hero">
+            <div class="container">
+                <h2>Bem-vindo à GameStore!</h2>
+                <p>A melhor loja de jogos online do Brasil. Milhares de títulos com os melhores preços.</p>
+                <a href="#jogos" class="btn">Ver Ofertas</a>
+            </div>
+        </section>
+
+        <!-- SEÇÃO FILTROS -->
+        <section class="filtros">
+            <div class="container">
+                <h3>Filtrar Jogos</h3>
+                
+                <div class="opcoes-filtro">
+                    <!-- Filtro por gênero -->
+                    <select id="filtroGenero" onchange="filtrarJogos()">
+                        <option value="">Todos os gêneros</option>
+                        <option value="RPG">RPG</option>
+                        <option value="FPS">FPS</option>
+                        <option value="Ação-Aventura">Ação-Aventura</option>
+                        <option value="Esportes">Esportes</option>
+                        <option value="Estratégia">Estratégia</option>
+                    </select>
+
+                    <!-- Filtro por preço -->
+                    <select id="filtroPreco" onchange="filtrarJogos()">
+                        <option value="">Qualquer preço</option>
+                        <option value="100">Até R$ 100</option>
+                        <option value="200">Até R$ 200</option>
+                        <option value="300">Até R$ 300</option>
+                    </select>
+
+                    <!-- Buscador -->
+                    <input 
+                        type="text" 
+                        id="buscador" 
+                        placeholder="Buscar jogo..."
+                        onkeyup="buscarJogos()"
+                    >
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO DE JOGOS -->
+        <section id="jogos" class="jogos">
+            <div class="container">
+                <h2>Nossos Jogos</h2>
+                
+                <!-- Mensagem de carregamento -->
+                <div id="carregando" class="carregando">
+                    ⏳ Carregando jogos...
+                </div>
+
+                <!-- Grid de produtos -->
+                <div id="gridJogos" class="grid-jogos">
+                    <!-- Os jogos serão carregados aqui via JavaScript -->
+                </div>
+
+                <!-- Mensagem se não encontrar nada -->
+                <div id="nenhumResultado" class="vazio" style="display: none;">
+                    <p>😞 Nenhum jogo encontrado com esses filtros</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO SOBRE -->
+        <section id="sobre" class="sobre">
+            <div class="container">
+                <h2>Sobre a GameStore</h2>
+                
+                <p>Somos a maior plataforma de vendas de jogos digitais do Brasil. Com mais de 50 mil clientes satisfeitos e catálogo constantemente atualizado.</p>
+                
+                <div class="info-sobre">
+                    <div class="item-sobre">
+                        <h3>🎯 Missão</h3>
+                        <p>Oferecer os melhores jogos com os melhores preços para toda a comunidade gamer brasileira.</p>
+                    </div>
+                    
+                    <div class="item-sobre">
+                        <h3>📍 Cobertura</h3>
+                        <p>Atendemos todo o Brasil via digital. Acesso instantâneo aos seus jogos após a compra.</p>
+                    </div>
+                    
+                    <div class="item-sobre">
+                        <h3>⏰ Suporte</h3>
+                        <p>24 horas por dia, 7 dias por semana. Estamos aqui para ajudar!</p>
+                    </div>
+
+                    <div class="item-sobre">
+                        <h3>🔒 Segurança</h3>
+                        <p>Pagamentos seguros com Stripe. Dados protegidos e criptografados.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO CONTATO -->
+        <section id="contato" class="contato">
+            <div class="container">
+                <h2>Entre em Contato</h2>
+                
+                <form class="form-contato" onsubmit="handleContato(event)">
+                    <!-- Mensagem -->
+                    <div id="mensagemContato" class="mensagem" style="display: none;"></div>
+
+                    <!-- Nome -->
+                    <div class="grupo-form">
+                        <label for="nome">Seu Nome:</label>
+                        <input type="text" id="nome" placeholder="João Silva" required>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="grupo-form">
+                        <label for="email">Seu Email:</label>
+                        <input type="email" id="email" placeholder="seu@email.com" required>
+                    </div>
+                    
+                    <!-- Mensagem -->
+                    <div class="grupo-form">
+                        <label for="mensagem">Mensagem:</label>
+                        <textarea id="mensagem" placeholder="Como podemos ajudar?" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn">Enviar Mensagem</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="rodape">
+        <div class="container">
+            <p>&copy; 2024 GameStore. Todos os direitos reservados.</p>
+            <p>Desenvolvido com ❤️ para a comunidade gamer</p>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <!-- Carregar script da pasta public (servido como arquivo estático com MIME type correto) -->
+    <script src="/script.js"></script>
+    <script>
+        /*
+          ARQUIVO: frontend/index.html (JavaScript embarcado)
+          DESCRIÇÃO: Lógica da página principal
+          
+          Este código:
+          - Carrega produtos do servidor
+          - Gerencia carrinho e favoritos
+          - Trata login/logout
+          - Implementa filtros e busca
+        */
+
+        // ============================================
+        // INICIALIZAR PÁGINA
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎮 GameStore carregado!');
+            
+            // Verificar se usuário está logado
+            verificarLogin();
+            
+            // Carregar jogos do servidor
+            carregarJogos();
+            
+            // Atualizar contadores
+            atualizarContadores();
+        });
+
+        // ============================================
+        // FUNÇÃO: Verificar se usuário está logado
+        // ============================================
+        function verificarLogin() {
+            const token = localStorage.getItem('token');
+            const usuario = localStorage.getItem('usuario');
+
+            if (token && usuario) {
+                // Usuário logado
+                const dadosUsuario = JSON.parse(usuario);
+                
+                // Esconder botões de login
+                document.getElementById('naologado').style.display = 'none';
+                
+                // Mostrar área de usuário
+                document.getElementById('logado').style.display = 'flex';
+                
+                // Exibir nome
+                document.getElementById('nomeUsuario').textContent = `👤 ${dadosUsuario.nome}`;
+                
+                console.log('✅ Usuário logado:', dadosUsuario.email);
+            } else {
+                // Usuário não logado
+                document.getElementById('naologado').style.display = 'flex';
+                document.getElementById('logado').style.display = 'none';
+            }
+        }
+
+        // ============================================
+        // FUNÇÃO: Fazer logout
+        // ============================================
+        function fazerLogout() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                // Remover dados
+                localStorage.removeItem('token');
+                localStorage.removeItem('usuario');
+                localStorage.removeItem('carrinho');
+                localStorage.removeItem('favoritos');
+                
+                // Recarregar página
+                window.location.href = '/';
+            }
+        }
+
+        // ============================================
+        // FUNÇÃO: Carregar jogos do servidor
+        // ============================================
+        async function carregarJogos() {
+            console.log('📦 Carregando jogos do servidor...');
+
+            try {
+                const resposta = await fetch('/api/jogos');
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    console.log(`✅ ${dados.total} jogos carregados!`);
+                    
+                    // Guardar jogos em variável global
+                    window.todosOsJogos = dados.jogos;
+                    
+                    // Exibir jogos
+                    exibirJogos(dados.jogos);
+                    
+                    // Esconder mensagem de carregamento
+                    document.getElementById('carregando').style.display = 'none';
+                } else {
+                    console.error('❌ Erro ao carregar:', dados.erro);
+                    document.getElementById('carregando').textContent = '❌ Erro ao carregar jogos';
+                }
+
+            } catch (erro) {
+                console.error('❌ Erro:', erro);
+                document.getElementById('carregando').textContent = '❌ Erro ao conectar ao servidor';
+            }
+        }
+
+        // ============================================
+        // FUNÇÃO: Exibir jogos na tela
+        // ============================================
+        function exibirJogos(jogos) {
+            const grid = document.getElementById('gridJogos');
+            const nenhumResultado = document.getElementById('nenhumResultado');
+
+            // Limpar grid
+            grid.innerHTML = '';
+
+            if (jogos.length === 0) {
+                nenhumResultado.style.display = 'block';
+                return;
+            }
+
+            nenhumResultado.style.display = 'none';
+
+            // Criar card para cada jogo
+            jogos.forEach(jogo => {
+                const card = document.createElement('div');
+                card.className = 'card-jogo';
+                card.innerHTML = `
+                    <!-- Imagem do jogo -->
+                    <img src="${jogo.imagem_url}" alt="${jogo.nome}" onerror="this.src='https://via.placeholder.com/300x400?text=Sem+Imagem'">
+                    
+                    <!-- Título -->
+                    <h3>${jogo.nome}</h3>
+                    
+                    <!-- Descrição curta -->
+                    <p class="descricao">${jogo.descricao.substring(0, 100)}...</p>
+                    
+                    <!-- Detalhes -->
+                    <p class="detalhes">
+                        <span class="genero">${jogo.genero}</span>
+                        <span class="classificacao">${jogo.classificacao}</span>
+                    </p>
+                    
+                    <!-- Preço -->
+                    <p class="preco">R$ ${jogo.preco.toFixed(2)}</p>
+                    
+                    <!-- Botões de ação -->
+                    <div class="botoes-card">
+                        <button class="btn" onclick="adicionarAoCarrinho(${jogo.id})">
+                            🛒 Comprar
+                        </button>
+                        <button class="btn-favorito" onclick="adicionarAosFavoritos(${jogo.id})" title="Adicionar aos favoritos">
+                            ❤️
+                        </button>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // ============================================
+        // FUNÇÃO: Filtrar jogos
+        // ============================================
+        function filtrarJogos() {
+            const genero = document.getElementById('filtroGenero').value;
+            const precoMax = document.getElementById('filtroPreco').value;
+
+            if (!window.todosOsJogos) return;
+
+            let jogos = window.todosOsJogos;
+
+            // Filtrar por gênero
+            if (genero) {
+                jogos = jogos.filter(j => j.genero === genero);
+            }
+
+            // Filtrar por preço
+            if (precoMax) {
+                jogos = jogos.filter(j => j.preco <= parseFloat(precoMax));
+            }
+
+            exibirJogos(jogos);
+        }
+
+        // ============================================
+        // FUNÇÃO: Buscar jogos
+        // ============================================
+        function buscarJogos() {
+            const termo = document.getElementById('buscador').value.toLowerCase();
+
+            if (!window.todosOsJogos) return;
+
+            const jogos = window.todosOsJogos.filter(j =>
+                j.nome.toLowerCase().includes(termo) ||
+                j.descricao.toLowerCase().includes(termo)
+            );
+
+            exibirJogos(jogos);
+        }
+
+        // ============================================
+        // FUNÇÃO: Adicionar ao carrinho
+        // ============================================
+        function adicionarAoCarrinho(jogoId) {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('❌ Você precisa estar logado para adicionar ao carrinho');
+                window.location.href = '/frontend/login.html';
+                return;
+            }
+
+            // Guardar no localStorage também (para funcionar offline)
+            let carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+            
+            const itemExistente = carrinho.find(item => item.jogoId === jogoId);
+            
+            if (itemExistente) {
+                itemExistente.quantidade++;
+            } else {
+                carrinho.push({ jogoId, quantidade: 1 });
+            }
+
+            localStorage.setItem('carrinho', JSON.stringify(carrinho));
+            
+            console.log('✅ Adicionado ao carrinho');
+            alert('✅ Jogo adicionado ao carrinho!');
+            
+            atualizarContadores();
+        }
+
+        // ============================================
+        // FUNÇÃO: Adicionar aos favoritos
+        // ============================================
+        function adicionarAosFavoritos(jogoId) {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('❌ Você precisa estar logado para adicionar aos favoritos');
+                window.location.href = '/frontend/login.html';
+                return;
+            }
+
+            let favoritos = JSON.parse(localStorage.getItem('favoritos') || '[]');
+
+            if (favoritos.includes(jogoId)) {
+                favoritos = favoritos.filter(id => id !== jogoId);
+                console.log('❌ Removido dos favoritos');
+            } else {
+                favoritos.push(jogoId);
+                console.log('❤️ Adicionado aos favoritos');
+            }
+
+            localStorage.setItem('favoritos', JSON.stringify(favoritos));
+            atualizarContadores();
+        }
+
+        // ============================================
+        // FUNÇÃO: Atualizar contadores
+        // ============================================
+        function atualizarContadores() {
+            const carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+            const favoritos = JSON.parse(localStorage.getItem('favoritos') || '[]');
+
+            document.getElementById('contadorCarrinho').textContent = carrinho.length;
+            document.getElementById('contadorFavoritos').textContent = favoritos.length;
+        }
+
+        // ============================================
+        // FUNÇÃO: Handle contato
+        // ============================================
+        async function handleContato(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const mensagem = document.getElementById('mensagem').value;
+
+            console.log('📧 Enviando contato:', email);
+
+            // Validação simples
+            if (!nome || !email || !mensagem) {
+                alert('❌ Preencha todos os campos');
+                return;
+            }
+
+            // Simular envio (em produção, enviar para servidor)
+            alert(`✅ Obrigado, ${nome}! Sua mensagem foi enviada.`);
+
+            // Limpar formulário
+            document.getElementById('nome').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('mensagem').value = '';
+        }
+    </script>
+</body>
+</html>

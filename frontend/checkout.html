@@ -1,0 +1,818 @@
+<!--
+  ARQUIVO: frontend/checkout.html
+  DESCRIÇÃO: Página de checkout e pagamento
+  
+  Aqui o usuário:
+  - Revisa seu pedido
+  - Insere dados de envio
+  - Entra com dados de cartão
+  - Confirma compra
+  
+  NOTA: Em produção, usar Stripe ou outro gateway seguro
+  Nunca processar cartão diretamente no frontend!
+-->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - GameStore</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .checkout-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .checkout-card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .grupo-form {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-pagar {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-pagar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-pagar:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .resumo-pedido {
+            position: sticky;
+            top: 20px;
+        }
+
+        .item-pedido {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .total-pedido {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-top: 2px solid #f0f0f0;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #667eea;
+        }
+
+        .seguranca {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .seguranca p {
+            margin-bottom: 5px;
+        }
+
+        .voltar {
+            margin-bottom: 20px;
+        }
+
+        .voltar a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .carregando {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .sucesso {
+            background: #e0ffe0;
+            border: 2px solid #1e7c1e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #1e7c1e;
+        }
+
+        .sucesso h2 {
+            margin-bottom: 10px;
+            border: none;
+        }
+
+        .aviso-cartao {
+            background: #ffe0e0;
+            border: 1px solid #ff6b6b;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            color: #c41e3a;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Voltar -->
+        <div class="voltar">
+            <a href="/frontend/carrinho.html">← Voltar ao carrinho</a>
+        </div>
+
+        <!-- Título -->
+        <h1>💳 Checkout</h1>
+
+        <!-- Conteúdo principal -->
+        <div class="checkout-grid">
+            <!-- Formulário de compra -->
+            <div id="formularioCheckout">
+                <!-- Dados de envio -->
+                <div class="checkout-card">
+                    <h2>📍 Dados de Envio</h2>
+                    
+                    <form id="formCheckout" onsubmit="handlePagamento(event)">
+                        <!-- Nome -->
+                        <div class="grupo-form">
+                            <label for="nomeEnvio">Nome Completo:</label>
+                            <input type="text" id="nomeEnvio" required>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="grupo-form">
+                            <label for="emailEnvio">Email:</label>
+                            <input type="email" id="emailEnvio" required>
+                        </div>
+
+                        <!-- Telefone -->
+                        <div class="grupo-form">
+                            <label for="telefone">Telefone:</label>
+                            <input type="tel" id="telefone" required placeholder="(11) 99999-9999">
+                        </div>
+
+                        <!-- Endereço -->
+                        <div class="grupo-form">
+                            <label for="endereco">Endereço:</label>
+                            <input type="text" id="endereco" required placeholder="Rua, número">
+                        </div>
+
+                        <!-- Complemento, Cidade, Estado -->
+                        <div class="form-row">
+                            <div class="grupo-form">
+                                <label for="complemento">Complemento:</label>
+                                <input type="text" id="complemento" placeholder="Apto, sala...">
+                            </div>
+                            <div class="grupo-form">
+                                <label for="cidade">Cidade:</label>
+                                <input type="text" id="cidade" required>
+                            </div>
+                        </div>
+
+                        <!-- Estado e CEP -->
+                        <div class="form-row">
+                            <div class="grupo-form">
+                                <label for="estado">Estado:</label>
+                                <input type="text" id="estado" required placeholder="SP">
+                            </div>
+                            <div class="grupo-form">
+                                <label for="cep">CEP:</label>
+                                <input type="text" id="cep" required placeholder="00000-000">
+                            </div>
+                        </div>
+
+                        <!-- Dados de pagamento -->
+                        <div class="checkout-card" style="margin-top: 20px;">
+                            <h2>💳 Dados de Pagamento</h2>
+
+                            <!-- Seletor de método de pagamento -->
+                            <div class="grupo-form">
+                                <label>Escolha o método de pagamento:</label>
+                                <div style="display: flex; gap: 15px; margin-top: 10px;">
+                                    <!-- PIX -->
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                        <input type="radio" name="metodo-pagamento" value="pix" onchange="mostrarMetodoPagamento('pix')" style="width: auto; cursor: pointer;">
+                                        <span>🔐 PIX</span>
+                                    </label>
+                                    
+                                    <!-- Cartão de Crédito -->
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal;">
+                                        <input type="radio" name="metodo-pagamento" value="cartao" checked onchange="mostrarMetodoPagamento('cartao')" style="width: auto; cursor: pointer;">
+                                        <span>💳 Cartão</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Seção PIX (escondida inicialmente) -->
+                            <div id="secao-pix" style="display: none; margin-top: 20px; padding: 20px; background: #f0f7ff; border-radius: 10px; border-left: 4px solid #667eea;">
+                                <h3 style="color: #667eea; margin-bottom: 10px;">📱 Pagamento via PIX</h3>
+                                
+                                <p style="color: #333; margin-bottom: 15px;">
+                                    Escanear o QR Code abaixo com seu banco ou app de pagamento para realizar a transferência PIX.
+                                </p>
+                                
+                                <!-- Loading -->
+                                <div id="pix-loading" style="display: none; text-align: center;">
+                                    <p style="color: #667eea;">⏳ Gerando QR Code...</p>
+                                </div>
+                                
+                                <!-- QR Code -->
+                                <div id="pix-qrcode" style="text-align: center; display: none;">
+                                    <img id="pix-qr-image" src="" alt="QR Code PIX" style="max-width: 250px; margin: 15px 0;">
+                                </div>
+                                
+                                <!-- Chave PIX -->
+                                <div id="pix-chave" style="display: none;">
+                                    <label>Ou copie a chave PIX:</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <input type="text" id="pix-key-input" readonly style="flex: 1;">
+                                        <button type="button" class="btn" onclick="copiarChavePix()" style="padding: 10px 15px;">
+                                            📋 Copiar
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Info de status -->
+                                <div id="pix-status" style="display: none; margin-top: 15px; padding: 10px; background: white; border-radius: 5px;">
+                                    <p style="color: #333; font-size: 0.9em;">
+                                        <strong>Status:</strong> <span id="pix-status-text">Aguardando pagamento...</span>
+                                    </p>
+                                </div>
+                                
+                                <!-- Botão de confirmar -->
+                                <button type="button" class="btn" onclick="confirmarPagamentoPix()" style="width: 100%; margin-top: 15px;">
+                                    ✅ Confirmar Pagamento
+                                </button>
+                            </div>
+
+                            <!-- Seção Cartão (visível inicialmente) -->
+                            <div id="secao-cartao">
+                                <!-- Aviso importante -->
+                                <div class="aviso-cartao">
+                                    ⚠️ <strong>AVISO:</strong> Este é um site de demonstração educacional.
+                                    Use dados de teste (não use cartão real!)<br>
+                                    Número de teste: 4242 4242 4242 4242
+                                </div>
+
+                            <!-- Nome no cartão -->
+                            <div class="grupo-form">
+                                <label for="nomeCartao">Nome no Cartão:</label>
+                                <input type="text" id="nomeCartao" required placeholder="JOAO SILVA">
+                            </div>
+
+                            <!-- Número do cartão -->
+                            <div class="grupo-form">
+                                <label for="numeroCartao">Número do Cartão:</label>
+                                <input 
+                                    type="text" 
+                                    id="numeroCartao" 
+                                    required 
+                                    placeholder="0000 0000 0000 0000"
+                                    maxlength="19"
+                                    onchange="formatarCartao()"
+                                >
+                            </div>
+
+                            <!-- Validade e CVV -->
+                            <div class="form-row">
+                                <div class="grupo-form">
+                                    <label for="validade">Validade:</label>
+                                    <input 
+                                        type="text" 
+                                        id="validade" 
+                                        required 
+                                        placeholder="MM/AA"
+                                        maxlength="5"
+                                    >
+                                </div>
+                                <div class="grupo-form">
+                                    <label for="cvv">CVV:</label>
+                                    <input 
+                                        type="text" 
+                                        id="cvv" 
+                                        required 
+                                        placeholder="000"
+                                        maxlength="4"
+                                    >
+                                </div>
+                            </div>
+
+                            <!-- Checkbox termos -->
+                            <div class="grupo-form" style="margin-top: 20px;">
+                                <label style="display: flex; align-items: center;">
+                                    <input type="checkbox" id="aceitar" required style="width: auto; margin-right: 10px;">
+                                    Concordo com os <a href="#" style="color: #667eea;">termos de serviço</a>
+                                </label>
+                            </div>
+
+                            <!-- Botão pagar -->
+                            <button type="submit" class="btn-pagar" id="btnPagar">
+                                Confirmar Pagamento
+                            </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Resumo do pedido -->
+            <div class="checkout-card resumo-pedido">
+                <h2>📦 Seu Pedido</h2>
+                
+                <div id="itensResumo"></div>
+
+                <div class="total-pedido">
+                    <span>Total:</span>
+                    <span id="totalResumo">R$ 0,00</span>
+                </div>
+
+                <div class="seguranca">
+                    <p>🔒 Dados criptografados</p>
+                    <p>🛡️ Compra protegida</p>
+                    <p>↩️ Direito de devolução</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /*
+          ARQUIVO: frontend/checkout.html (JavaScript)
+          DESCRIÇÃO: Lógica de pagamento
+        */
+
+        let carrinho = [];
+        let jogos = [];
+
+        // ============================================
+        // INICIALIZAR
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('💳 Página de checkout carregada');
+            
+            // Verificar login
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('❌ Você precisa estar logado');
+                window.location.href = '/frontend/login.html';
+                return;
+            }
+
+            // Carregar dados
+            carregarDados();
+            preencherDadosUsuario();
+        });
+
+        // ============================================
+        // FUNÇÃO: Carregar dados
+        // ============================================
+        async function carregarDados() {
+            try {
+                // Pegar carrinho do localStorage
+                carrinho = JSON.parse(localStorage.getItem('carrinho') || '[]');
+
+                // Carregar jogos do servidor
+                const resposta = await fetch('/api/jogos');
+                const dados = await resposta.json();
+                jogos = dados.jogos;
+
+                // Montar resumo
+                montarResumo();
+            } catch (erro) {
+                console.error('❌ Erro:', erro);
+            }
+        }
+
+        // ============================================
+        // FUNÇÃO: Montar resumo
+        // ============================================
+        function montarResumo() {
+            const container = document.getElementById('itensResumo');
+            container.innerHTML = '';
+
+            let total = 0;
+
+            carrinho.forEach(item => {
+                const jogo = jogos.find(j => j.id === item.jogoId);
+                if (!jogo) return;
+
+                const subtotal = jogo.preco * item.quantidade;
+                total += subtotal;
+
+                const itemHtml = document.createElement('div');
+                itemHtml.className = 'item-pedido';
+                itemHtml.innerHTML = `
+                    <span>${jogo.nome} x${item.quantidade}</span>
+                    <span>R$ ${subtotal.toFixed(2)}</span>
+                `;
+                container.appendChild(itemHtml);
+            });
+
+            document.getElementById('totalResumo').textContent = 
+                'R$ ' + total.toFixed(2).replace('.', ',');
+        }
+
+        // ============================================
+        // FUNÇÃO: Preencher dados do usuário
+        // ============================================
+        function preencherDadosUsuario() {
+            const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+            if (usuario.email) {
+                document.getElementById('nomeEnvio').value = usuario.nome || '';
+                document.getElementById('emailEnvio').value = usuario.email || '';
+            }
+        }
+
+        // ============================================
+        // FUNÇÃO: Formatar cartão
+        // ============================================
+        function formatarCartao() {
+            let valor = document.getElementById('numeroCartao').value
+                .replace(/\D/g, '') // Remove tudo que não é número
+                .replace(/(\d{4})/g, '$1 ') // Adiciona espaço a cada 4 dígitos
+                .trim();
+            
+            document.getElementById('numeroCartao').value = valor;
+        }
+
+        // ============================================
+        // FUNÇÃO: Handle pagamento
+        // ============================================
+        async function handlePagamento(event) {
+            event.preventDefault();
+
+            console.log('💳 Processando pagamento...');
+
+            // Validar dados
+            const nomeEnvio = document.getElementById('nomeEnvio').value;
+            const emailEnvio = document.getElementById('emailEnvio').value;
+            const nomeCartao = document.getElementById('nomeCartao').value;
+            const numeroCartao = document.getElementById('numeroCartao').value.replace(/\s/g, '');
+            const cvv = document.getElementById('cvv').value;
+
+            // Validações simples
+            if (!nomeEnvio || !emailEnvio) {
+                alert('❌ Preencha todos os campos de envio');
+                return;
+            }
+
+            if (numeroCartao.length !== 16) {
+                alert('❌ Número de cartão inválido');
+                return;
+            }
+
+            if (cvv.length < 3) {
+                alert('❌ CVV inválido');
+                return;
+            }
+
+            // Desabilitar botão
+            const btnPagar = document.getElementById('btnPagar');
+            btnPagar.disabled = true;
+            btnPagar.textContent = '⏳ Processando...';
+
+            try {
+                // Simular processamento (em produção, usar Stripe)
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Simular sucesso
+                const pedidoId = Math.floor(Math.random() * 1000000);
+
+                // Limpar carrinho
+                localStorage.removeItem('carrinho');
+
+                // Mostrar mensagem de sucesso
+                mostrarSucesso(pedidoId);
+
+            } catch (erro) {
+                console.error('❌ Erro no pagamento:', erro);
+                alert('❌ Erro ao processar pagamento. Tente novamente.');
+                btnPagar.disabled = false;
+                btnPagar.textContent = 'Confirmar Pagamento';
+            }
+        }
+
+        // ============================================
+        // FUNÇÕES DE PAGAMENTO - PIX
+        // ============================================
+
+        /*
+          Mostrar ou esconder seções de pagamento
+          Quando o usuário escolhe PIX ou Cartão
+        */
+        function mostrarMetodoPagamento(metodo) {
+            const secaoPix = document.getElementById('secao-pix');
+            const secaoCartao = document.getElementById('secao-cartao');
+            
+            if (metodo === 'pix') {
+                // Mostrar PIX, esconder cartão
+                secaoPix.style.display = 'block';
+                secaoCartao.style.display = 'none';
+            } else {
+                // Mostrar cartão, esconder PIX
+                secaoPix.style.display = 'none';
+                secaoCartao.style.display = 'block';
+            }
+        }
+
+        /*
+          Gerar QR Code PIX e preparar pagamento
+          Faz requisição POST /api/pagamento/pix
+        */
+        async function gerarQrCodePix() {
+            try {
+                // Pegar o total do carrinho
+                const totalEl = document.getElementById('totalResumo');
+                if (!totalEl) {
+                    throw new Error('Elemento de total não encontrado');
+                }
+                const valor = parseFloat(totalEl.textContent.replace('R$ ', '').replace(',', '.'));
+                
+                // Mostrar loading
+                const pixLoading = document.getElementById('pix-loading');
+                const pixQrcode = document.getElementById('pix-qrcode');
+                const pixChave = document.getElementById('pix-chave');
+                
+                if (pixLoading) pixLoading.style.display = 'block';
+                if (pixQrcode) pixQrcode.style.display = 'none';
+                if (pixChave) pixChave.style.display = 'none';
+                
+                console.log('📱 Gerando QR Code PIX... Valor:', valor);
+                
+                // Fazer requisição ao servidor
+                const resposta = await fetch('/api/pagamento/pix', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    },
+                    body: JSON.stringify({
+                        valor: valor,
+                        descricao: 'Compra de jogos na GameStore',
+                        usuarioId: localStorage.getItem('usuarioId') || 1
+                    })
+                });
+                
+                if (!resposta.ok) {
+                    throw new Error('Erro ao gerar QR Code');
+                }
+                
+                const dados = await resposta.json();
+                
+                console.log('✅ QR Code PIX gerado:', dados.pixPaymentId);
+                
+                // Guardar ID do pagamento PIX
+                localStorage.setItem('pixPaymentId', dados.pixPaymentId);
+                
+                // Esconder loading
+                if (pixLoading) pixLoading.style.display = 'none';
+                
+                // Mostrar QR Code
+                if (dados.qrCode) {
+                    const qrImg = document.getElementById('pix-qr-image');
+                    if (qrImg) {
+                        qrImg.src = dados.qrCode;
+                        if (pixQrcode) pixQrcode.style.display = 'block';
+                    }
+                }
+                
+                // NÃO mostrar chave PIX real (segurança)
+                // A chave PIX fica apenas no backend, criptografada
+                if (pixChave) pixChave.style.display = 'none';
+                
+                // Mostrar status
+                const pixStatus = document.getElementById('pix-status');
+                const pixStatusText = document.getElementById('pix-status-text');
+                if (pixStatus) pixStatus.style.display = 'block';
+                if (pixStatusText) pixStatusText.textContent = '⏳ Aguardando pagamento... Escaneie o QR Code com seu banco';
+                
+                // Começar a verificar status a cada 5 segundos
+                verificarStatusPix(dados.pixPaymentId);
+                
+            } catch (erro) {
+                console.error('❌ Erro ao gerar QR Code:', erro);
+                alert('❌ Erro ao gerar QR Code. Tente novamente.');
+            }
+        }
+
+        /*
+          Copiar chave PIX para clipboard
+        */
+        function copiarChavePix() {
+            const input = document.getElementById('pix-key-input');
+            input.select();
+            document.execCommand('copy');
+            alert('✅ Chave PIX copiada!');
+        }
+
+        /*
+          Verificar status do pagamento PIX
+          Faz requisição GET /api/pagamento/pix/:id a cada 5 segundos
+        */
+        let intervaloPix = null;
+        function verificarStatusPix(pixPaymentId) {
+            // Limpar intervalo anterior se existir
+            if (intervaloPix) clearInterval(intervaloPix);
+            
+            // Verificar a cada 5 segundos
+            intervaloPix = setInterval(async () => {
+                try {
+                    const resposta = await fetch(`/api/pagamento/pix/${pixPaymentId}`);
+                    const dados = await resposta.json();
+                    
+                    const statusEl = document.getElementById('pix-status-text');
+                    
+                    if (dados.pago) {
+                        // ✅ Pagamento confirmado!
+                        console.log('✅ Pagamento PIX confirmado!');
+                        if (statusEl) {
+                            statusEl.textContent = '✅ Pagamento confirmado!';
+                            statusEl.style.color = '#4CAF50';
+                        }
+                        
+                        // Parar de verificar
+                        clearInterval(intervaloPix);
+                        
+                        // Mostrar sucesso após 2 segundos
+                        setTimeout(() => {
+                            mostrarSucesso('PIX-' + pixPaymentId.substring(0, 8));
+                        }, 2000);
+                        
+                    } else {
+                        // ⏳ Ainda aguardando
+                        if (statusEl) {
+                            statusEl.textContent = dados.statusFormatado || '⏳ Aguardando pagamento...';
+                            statusEl.style.color = '#FF9800';
+                        }
+                    }
+                    
+                } catch (erro) {
+                    console.error('Erro ao verificar status:', erro);
+                }
+            }, 5000);
+        }
+
+        /*
+          Confirmar pagamento PIX (quando o usuário clica no botão)
+        */
+        function confirmarPagamentoPix() {
+            const pixPaymentId = localStorage.getItem('pixPaymentId');
+            
+            if (!pixPaymentId) {
+                alert('❌ Erro: PIX não foi gerado ainda');
+                return;
+            }
+            
+            // Simular confirmação manual
+            alert('✅ Você clicou em confirmar. O sistema verificará o pagamento nos próximos segundos.');
+            
+            // Forçar verificação imediata
+            verificarStatusPix(pixPaymentId);
+        }
+
+        // ============================================
+        // EVENTO: Quando página carrega
+        // ============================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Se PIX for selecionado, gerar QR Code
+            const metodoPagamento = document.querySelector('input[name="metodo-pagamento"]:checked');
+            
+            if (metodoPagamento && metodoPagamento.value === 'pix') {
+                gerarQrCodePix();
+            }
+            
+            // Adicionar listener para mudanças de método
+            document.querySelectorAll('input[name="metodo-pagamento"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'pix') {
+                        gerarQrCodePix();
+                    }
+                });
+            });
+        });
+
+        // ============================================
+        // FUNÇÃO: Mostrar sucesso
+        // ============================================
+        function mostrarSucesso(pedidoId) {
+            const formulario = document.getElementById('formularioCheckout');
+            
+            formulario.innerHTML = `
+                <div class="sucesso">
+                    <h2>✅ Pagamento Realizado!</h2>
+                    <p style="margin: 10px 0;">Obrigado pela compra! 🎉</p>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 5px; margin: 15px 0; color: #333;">
+                        <p><strong>Número do Pedido:</strong> #${pedidoId}</p>
+                        <p><strong>Status:</strong> Pago ✅</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">
+                            Um email de confirmação foi enviado para seu endereço de email.
+                        </p>
+                    </div>
+                    
+                    <a href="/" style="
+                        display: inline-block;
+                        padding: 10px 20px;
+                        background: #667eea;
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 5px;
+                        font-weight: 600;
+                        margin-top: 10px;
+                    ">
+                        ← Voltar à Loja
+                    </a>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

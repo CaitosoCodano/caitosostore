@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Mercado Pago PIX - GameStore</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .button-secondary {
+            background: #666;
+            margin-top: 10px;
+        }
+
+        .button-secondary:hover {
+            background: #555;
+            box-shadow: 0 10px 20px rgba(100, 100, 100, 0.4);
+        }
+
+        .qr-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .qr-container.active {
+            display: block;
+        }
+
+        .qr-container h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .qr-image {
+            max-width: 100%;
+            width: 300px;
+            height: 300px;
+            border: 5px solid #ddd;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            margin: 0 auto 20px;
+        }
+
+        .payment-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            text-align: right;
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .link-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .link-button:hover {
+            background: #45a049;
+        }
+
+        .status-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 6px;
+        }
+
+        .status-section h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .error {
+            color: #721c24;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            color: #155724;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #1565c0;
+            line-height: 1.6;
+        }
+
+        .instructions strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .copy-button {
+            background: #2196F3;
+            padding: 8px 12px;
+            font-size: 12px;
+            margin-top: 5px;
+            width: auto;
+            display: inline-block;
+        }
+
+        .copy-button:hover {
+            background: #1976D2;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+
+            .qr-image {
+                width: 250px;
+                height: 250px;
+            }
+
+            .info-row {
+                flex-direction: column;
+            }
+
+            .info-value {
+                text-align: left;
+                margin-left: 0;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Teste PIX - Mercado Pago</h1>
+        <p class="subtitle">Gere um QR Code PIX real para testar no seu app bancário</p>
+
+        <div class="instructions">
+            <strong>ℹ️ Como funciona:</strong>
+            1. Defina um valor em reais<br>
+            2. Clique em "Gerar QR Code PIX"<br>
+            3. O QR Code será exibido abaixo<br>
+            4. Escaneie com seu app bancário<br>
+            5. Clique em "Verificar Status" para ver se foi confirmado
+        </div>
+
+        <form id="paymentForm">
+            <div class="form-group">
+                <label for="valor">💰 Valor (R$)</label>
+                <input 
+                    type="number" 
+                    id="valor" 
+                    name="valor" 
+                    value="49.90" 
+                    step="0.01" 
+                    min="0.01" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="descricao">📝 Descrição</label>
+                <input 
+                    type="text" 
+                    id="descricao" 
+                    name="descricao" 
+                    value="Teste PIX - GameStore" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="usuarioId">👤 ID Usuário (opcional)</label>
+                <input 
+                    type="number" 
+                    id="usuarioId" 
+                    name="usuarioId" 
+                    value="1"
+                >
+            </div>
+
+            <button type="submit">
+                💳 Gerar QR Code PIX
+            </button>
+            <button type="button" id="limparBtn" class="button-secondary" style="display:none;">
+                🔄 Limpar
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Gerando QR Code...</p>
+        </div>
+
+        <div class="qr-container" id="qrContainer">
+            <h2>✅ QR Code Gerado!</h2>
+            
+            <img id="qrImage" class="qr-image" alt="QR Code PIX">
+
+            <div class="payment-info">
+                <div class="info-row">
+                    <span class="info-label">ID Pagamento:</span>
+                    <span class="info-value" id="pixId">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Valor:</span>
+                    <span class="info-value" id="pixValor">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="info-value" id="pixStatus">⏳ Aguardando</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Criado em:</span>
+                    <span class="info-value" id="pixCriado">-</span>
+                </div>
+            </div>
+
+            <button type="button" id="verificarBtn">
+                🔍 Verificar Status
+            </button>
+
+            <button type="button" id="simularBtn" class="button-secondary">
+                ✅ Simular Pagamento (Teste)
+            </button>
+
+            <div class="status-section" id="statusSection" style="display:none;">
+                <h3 id="statusMsg">-</h3>
+            </div>
+
+            <a id="checkoutLink" href="#" target="_blank" class="link-button">
+                🛒 Abrir Checkout Mercado Pago
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let currentPixId = null;
+
+        // Submeter formulário
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await gerarPagamento();
+        });
+
+        // Verificar status
+        document.getElementById('verificarBtn').addEventListener('click', async () => {
+            if (!currentPixId) {
+                alert('Nenhum pagamento ativo');
+                return;
+            }
+            await verificarStatus(currentPixId);
+        });
+
+        // Simular pagamento
+        document.getElementById('simularBtn').addEventListener('click', async () => {
+            if (!currentPixId) {
+                alert('Nenhum pagamento ativo');
+                return;
+            }
+            await simularPagamento(currentPixId);
+        });
+
+        // Limpar
+        document.getElementById('limparBtn').addEventListener('click', () => {
+            document.getElementById('paymentForm').reset();
+            document.getElementById('qrContainer').classList.remove('active');
+            document.getElementById('limparBtn').style.display = 'none';
+            currentPixId = null;
+        });
+
+        async function gerarPagamento() {
+            const valor = parseFloat(document.getElementById('valor').value);
+            const descricao = document.getElementById('descricao').value;
+            const usuarioId = parseInt(document.getElementById('usuarioId').value) || null;
+
+            if (valor <= 0) {
+                alert('Valor deve ser maior que 0');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('qrContainer').classList.remove('active');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/pagamento/pix`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ valor, descricao, usuarioId })
+                });
+
+                const dados = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(dados.erro || 'Erro ao criar pagamento');
+                }
+
+                currentPixId = dados.pixPaymentId;
+
+                // Exibir QR Code
+                document.getElementById('qrImage').src = dados.qrCode;
+                document.getElementById('pixId').textContent = dados.pixPaymentId;
+                document.getElementById('pixValor').textContent = `R$ ${dados.valor.toFixed(2)}`;
+                document.getElementById('pixStatus').textContent = '⏳ Aguardando';
+                document.getElementById('pixCriado').textContent = new Date().toLocaleString('pt-BR');
+
+                // Atualizar link checkout
+                if (dados.linkCheckout) {
+                    document.getElementById('checkoutLink').href = dados.linkCheckout;
+                    document.getElementById('checkoutLink').style.display = 'inline-block';
+                } else {
+                    document.getElementById('checkoutLink').style.display = 'none';
+                }
+
+                document.getElementById('qrContainer').classList.add('active');
+                document.getElementById('limparBtn').style.display = 'block';
+                document.getElementById('statusSection').style.display = 'none';
+
+                console.log('✅ Pagamento criado:', dados);
+            } catch (erro) {
+                alert(`❌ Erro: ${erro.message}`);
+                console.error('Erro:', erro);
+            } finally {
+                document.getElementById('loading').classList.remove('active');
+            }
+        }
+
+        async function verificarStatus(pixId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/pagamento/pix/${pixId}`);
+                const dados = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(dados.erro || 'Erro ao verificar status');
+                }
+
+                // Atualizar status
+                const emoji = dados.pago ? '✅' : '⏳';
+                document.getElementById('pixStatus').textContent = `${emoji} ${dados.statusFormatado}`;
+
+                // Mostrar mensagem
+                const statusSection = document.getElementById('statusSection');
+                const statusMsg = document.getElementById('statusMsg');
+                statusMsg.textContent = dados.mensagem;
+                statusSection.className = 'status-section ' + (dados.pago ? 'success' : '');
+                statusSection.style.display = 'block';
+
+                console.log('Status:', dados);
+            } catch (erro) {
+                alert(`❌ Erro: ${erro.message}`);
+                console.error('Erro:', erro);
+            }
+        }
+
+        async function simularPagamento(pixId) {
+            if (!confirm('Simular pagamento confirmado? (Apenas para testes)')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/pagamento/pix/simular/${pixId}`, {
+                    method: 'POST'
+                });
+
+                const dados = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(dados.erro || 'Erro ao simular');
+                }
+
+                // Atualizar status após simulação
+                await new Promise(resolve => setTimeout(resolve, 500));
+                await verificarStatus(pixId);
+
+                console.log('✅ Simulação:', dados);
+            } catch (erro) {
+                alert(`❌ Erro: ${erro.message}`);
+                console.error('Erro:', erro);
+            }
+        }
+    </script>
+</body>
+</html>

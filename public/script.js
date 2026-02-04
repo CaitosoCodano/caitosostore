@@ -1,5 +1,5 @@
 /*
-  ARQUIVO: scripts.js
+  ARQUIVO: public/script.js
   DESCRIÇÃO: Comportamentos interativos do site
   JavaScript é como o cérebro - adiciona lógica e interatividade
 */

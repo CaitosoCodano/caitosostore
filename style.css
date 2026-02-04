@@ -1,230 +1,429 @@
-/* Adicione estas novas regras ao seu style.css existente */
+/*
+  ARQUIVO: style.css
+  DESCRIÇÃO: Estilos do site (cores, fontes, layouts)
+  O CSS é como a roupa do HTML - define a aparência
+*/
 
-/* Barra de busca */
-.search-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 20px;
+/* LINHA 5: Reset básico - remove margens padrão do navegador */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* 
+      'box-sizing: border-box' faz o padding não aumentar o tamanho total
+      É mais fácil controlar tamanhos com isso
+    */
 }
 
-.search-bar input {
-    padding: 10px 15px;
-    border-radius: 20px;
-    border: 1px solid #6a11cb;
-    background: #252547;
+/* LINHA 12: Estilos gerais do corpo (body) */
+body {
+    font-family: 'Poppins', Arial, sans-serif;
+    /* 
+      Define a fonte: primeiro tenta Poppins, se não tiver, usa Arial
+      'sans-serif' é fallback genérico
+    */
+    
+    line-height: 1.6;
+    /* Espaçamento entre linhas do texto */
+    
+    color: #333;
+    /* Cor do texto principal (cinza escuro) */
+    
+    background-color: #f5f5f5;
+    /* Cor de fundo do site (cinza claro) */
+}
+
+/* LINHA 24: Container centralizador */
+.container {
+    max-width: 1200px;
+    /* Largura máxima do conteúdo */
+    
+    margin: 0 auto;
+    /* Centraliza: margem 0 em cima/baixo, auto nas laterais */
+    
+    padding: 0 20px;
+    /* Padding nas laterais para não colar nas bordas */
+}
+
+/* LINHA 32: Estilos do cabeçalho */
+.cabecalho {
+    background-color: #1a1a2e;
+    /* Cor de fundo azul escuro */
+    
     color: white;
-    width: 250px;
+    /* Cor do texto branco */
+    
+    padding: 20px 0;
+    /* Espaçamento interno: 20px em cima/baixo, 0 nas laterais */
+    
+    position: sticky;
+    /* Faz o cabeçalho "grudar" no topo ao rolar */
+    
+    top: 0;
+    /* Gruda no topo da página */
+    
+    z-index: 100;
+    /* Garante que fique acima de outros elementos */
 }
 
-.search-bar button {
-    background: #6a11cb;
-    color: white;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
+/* LINHA 46: Estilos da logo */
+.logo {
+    font-size: 2rem;
+    /* Tamanho da fonte: 2x o tamanho padrão */
+    
+    font-weight: 700;
+    /* Espessura da fonte: negrito */
+    
+    color: #6a11cb;
+    /* Cor roxa */
+    
+    display: inline-block;
+    /* Permite definir largura/altura */
+}
+
+/* LINHA 55: Estilos do menu */
+.menu ul {
+    list-style: none;
+    /* Remove as bolinhas da lista */
+    
     display: flex;
-    align-items: center;
-    justify-content: center;
+    /* Transforma a lista vertical em horizontal */
+    
+    gap: 30px;
+    /* Espaço entre os itens do menu */
 }
 
-/* Wishlist */
-.wishlist-icon {
-    color: #f0f0f0;
-    font-size: 1.3rem;
-    position: relative;
+.menu a {
+    color: white;
+    /* Cor dos links */
+    
+    text-decoration: none;
+    /* Remove o sublinhado dos links */
+    
+    font-weight: 600;
+    /* Peso da fonte: semi-negrito */
+    
     transition: color 0.3s;
+    /* Animação suave de 0.3 segundos para mudança de cor */
 }
 
-.wishlist-icon:hover {
-    color: #ff4757;
+.menu a:hover {
+    color: #6a11cb;
+    /* Muda a cor para roxo quando passar o mouse */
 }
 
-.wishlist-count {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background-color: #ff4757;
+/* LINHA 74: Estilos da seção hero (boas-vindas) */
+.hero {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    /* Gradiente de roxo para azul */
+    
     color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: bold;
+    /* Texto branco para contrastar com fundo escuro */
+    
+    text-align: center;
+    /* Centraliza o texto */
+    
+    padding: 100px 0;
+    /* Espaçamento grande em cima/baixo */
 }
 
-/* Botões de ação nos jogos */
-.game-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
+.hero h2 {
+    font-size: 3rem;
+    /* Título grande */
+    
+    margin-bottom: 20px;
+    /* Espaço abaixo do título */
 }
 
-.btn-wishlist {
-    background: transparent;
-    color: #b0b0c0;
-    border: 2px solid #b0b0c0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+.hero p {
+    font-size: 1.2rem;
+    /* Texto um pouco maior */
+    
+    margin-bottom: 30px;
+    /* Espaço abaixo do parágrafo */
+}
+
+/* LINHA 94: Estilos dos botões */
+.btn {
+    background-color: #6a11cb;
+    /* Cor de fundo roxa */
+    
+    color: white;
+    /* Texto branco */
+    
+    border: none;
+    /* Remove borda padrão */
+    
+    padding: 12px 30px;
+    /* Espaçamento interno: 12px cima/baixo, 30px lados */
+    
+    border-radius: 30px;
+    /* Borda arredondada (cápsula) */
+    
+    font-size: 1rem;
+    /* Tamanho da fonte */
+    
+    font-weight: 600;
+    /* Negrito */
+    
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
+    /* Muda cursor para "mãozinha" quando passar por cima */
+    
+    transition: background-color 0.3s, transform 0.3s;
+    /* Animações suaves */
 }
 
-.btn-wishlist:hover, .btn-wishlist.active {
-    color: #ff4757;
-    border-color: #ff4757;
-    background: rgba(255, 71, 87, 0.1);
+.btn:hover {
+    background-color: #2575fc;
+    /* Muda cor para azul no hover */
+    
+    transform: translateY(-3px);
+    /* Levanta o botão 3 pixels */
 }
 
-/* Categorias */
-.categories {
+/* LINHA 118: Estilos da seção de jogos */
+.jogos {
     padding: 80px 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+    /* Espaçamento interno */
+    
+    background-color: white;
+    /* Fundo branco */
 }
 
-.categories-grid {
+.jogos h2 {
+    text-align: center;
+    /* Centraliza título */
+    
+    margin-bottom: 50px;
+    /* Espaço abaixo */
+    
+    color: #1a1a2e;
+    /* Cor azul escuro */
+}
+
+/* LINHA 129: Grid de jogos (layout em grade) */
+.grid-jogos {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 20px;
+    /* Ativa layout grid */
+    
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    /* 
+      Cria colunas que se ajustam automaticamente
+      Cada coluna tem no mínimo 300px e máximo 1fr (fração igual)
+    */
+    
+    gap: 30px;
+    /* Espaço entre os cards */
+}
+
+/* LINHA 140: Estilos dos cards de jogo */
+.card-jogo {
+    background-color: #f9f9f9;
+    /* Fundo cinza bem claro */
+    
+    border-radius: 10px;
+    /* Bordas arredondadas */
+    
+    overflow: hidden;
+    /* Esconde partes da imagem que saem do card */
+    
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    /* Sombra suave */
+    
+    transition: transform 0.3s;
+    /* Animação suave para transformações */
+}
+
+.card-jogo:hover {
+    transform: translateY(-10px);
+    /* Levanta o card 10px no hover */
+}
+
+.card-jogo img {
+    width: 100%;
+    /* Largura 100% do card */
+    
+    height: 200px;
+    /* Altura fixa */
+    
+    object-fit: cover;
+    /* Corta imagem para caber sem distorcer */
+}
+
+.card-jogo h3 {
+    padding: 20px 20px 10px;
+    /* Espaçamento interno: 20px top, 20px lados, 10px bottom */
+    
+    color: #1a1a2e;
+}
+
+.card-jogo p {
+    padding: 0 20px;
+    /* Padding só nas laterais */
+    
+    color: #666;
+    /* Cinza médio */
+}
+
+.preco {
+    color: #6a11cb !important;
+    /* Cor roxa (important força sobre outros estilos) */
+    
+    font-size: 1.5rem;
+    /* Tamanho maior */
+    
+    font-weight: 700;
+    /* Negrito */
+    
+    margin: 15px 0;
+    /* Margem em cima e embaixo */
+}
+
+/* LINHA 177: Estilos da seção sobre */
+.sobre {
+    padding: 80px 0;
+    background-color: #f5f5f5;
+}
+
+.info-sobre {
+    display: flex;
+    /* Layout flexível */
+    
+    justify-content: space-between;
+    /* Espaça os itens igualmente */
+    
+    flex-wrap: wrap;
+    /* Quebra linha se não couber */
+    
+    gap: 30px;
+    /* Espaço entre itens */
+    
     margin-top: 40px;
 }
 
-.category-btn {
-    background: #252547;
-    border: none;
-    padding: 20px;
+.item-sobre {
+    flex: 1;
+    /* Cada item ocupa espaço igual */
+    
+    min-width: 250px;
+    /* Mínimo de 250px antes de quebrar linha */
+    
+    text-align: center;
+    /* Centraliza conteúdo */
+    
+    padding: 30px;
+    background-color: white;
     border-radius: 10px;
-    color: white;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
-.category-btn:hover {
-    background: #6a11cb;
-    transform: translateY(-5px);
+/* LINHA 201: Estilos da seção contato */
+.contato {
+    padding: 80px 0;
+    background-color: white;
 }
 
-.category-btn i {
-    font-size: 2rem;
+.form-contato {
+    max-width: 600px;
+    /* Largura máxima do formulário */
+    
+    margin: 0 auto;
+    /* Centraliza o formulário */
 }
 
-/* Newsletter no footer */
-.newsletter {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
+.grupo-form {
+    margin-bottom: 25px;
+    /* Espaço entre os campos */
 }
 
-.newsletter input {
-    flex: 1;
-    padding: 10px;
+.grupo-form label {
+    display: block;
+    /* Faz o label ocupar linha inteira (fica acima do campo) */
+    
+    margin-bottom: 8px;
+    /* Espaço abaixo do label */
+    
+    font-weight: 600;
+    /* Negrito */
+    
+    color: #1a1a2e;
+}
+
+.grupo-form input,
+.grupo-form textarea {
+    width: 100%;
+    /* Largura total do container */
+    
+    padding: 12px;
+    /* Espaçamento interno */
+    
+    border: 1px solid #ddd;
+    /* Borda cinza clara */
+    
     border-radius: 5px;
-    border: 1px solid #6a11cb;
-    background: #252547;
-    color: white;
-}
-
-/* Links no footer */
-.footer-link {
-    background: none;
-    border: none;
-    color: #b0b0c0;
-    cursor: pointer;
-    text-align: left;
-    padding: 0;
-    margin-bottom: 10px;
+    /* Bordas levemente arredondadas */
+    
+    font-family: inherit;
+    /* Herda a fonte do body */
+    
     font-size: 1rem;
-    transition: color 0.3s;
+    /* Tamanho padrão de fonte */
 }
 
-.footer-link:hover {
-    color: #6a11cb;
+.grupo-form input:focus,
+.grupo-form textarea:focus {
+    outline: none;
+    /* Remove contorno padrão do navegador */
+    
+    border-color: #6a11cb;
+    /* Muda borda para roxo quando focado */
+    
+    box-shadow: 0 0 0 2px rgba(106, 17, 203, 0.2);
+    /* Sombra roxa suave */
 }
 
-.footer-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-/* Itens do carrinho no modal */
-.cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #333;
-}
-
-.cart-item-info {
-    flex: 1;
-}
-
-.cart-item-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.cart-item-actions button {
-    background: #ff4757;
+/* LINHA 243: Estilos do rodapé */
+.rodape {
+    background-color: #1a1a2e;
     color: white;
-    border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    text-align: center;
+    padding: 40px 0;
 }
 
-/* Responsividade */
+.rodape p {
+    margin-bottom: 10px;
+    /* Espaço entre os parágrafos */
+}
+
+/* LINHA 252: Responsividade para celulares */
 @media (max-width: 768px) {
-    .search-bar input {
-        width: 150px;
-    }
+    /* 
+      Tudo dentro destas chaves só aplica em telas menores que 768px
+      Isso é chamado de "media query" - responsividade
+    */
     
-    .footer-bottom {
+    .menu ul {
         flex-direction: column;
-        text-align: center;
+        /* Coloca menu em coluna (vertical) */
+        
+        gap: 15px;
+        /* Menos espaço entre itens */
     }
     
-    .categories-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .hero h2 {
+        font-size: 2rem;
+        /* Título menor em celulares */
+    }
+    
+    .grid-jogos {
+        grid-template-columns: 1fr;
+        /* Uma coluna só em celulares */
+    }
+    
+    .info-sobre {
+        flex-direction: column;
+        /* Coluna em vez de linha */
     }
 }
 
-@media (max-width: 576px) {
-    .search-bar {
-        display: none;
-    }
-    
-    .categories-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .game-actions {
-        flex-direction: column;
-    }
-    
-    .footer-content {
-        grid-template-columns: 1fr;
-    }
-}
+/* FIM DO ARQUIVO CSS */

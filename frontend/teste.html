@@ -1,0 +1,477 @@
+<!--
+  ARQUIVO: frontend/teste.html
+  DESCRIÇÃO: Página para testar rotas da API
+  
+  Use esta página para testar a API sem usar ferramentas externas.
+  Útil para entender como funciona a comunicação frontend-backend.
+-->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de API - GameStore</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #4ec9b0;
+            margin-bottom: 20px;
+        }
+
+        .secao {
+            background: #252526;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 4px solid #007acc;
+        }
+
+        .secao h2 {
+            color: #4ec9b0;
+            margin-bottom: 15px;
+        }
+
+        .opcoes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .opcao {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #404040;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .opcao:hover {
+            background: #2d2d30;
+            border-color: #007acc;
+        }
+
+        .opcao.ativo {
+            background: #1f4788;
+            border-color: #007acc;
+        }
+
+        .opcao h3 {
+            color: #4ec9b0;
+            margin-bottom: 10px;
+        }
+
+        .opcao p {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        .formulario {
+            display: none;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .formulario.ativo {
+            display: block;
+        }
+
+        .grupo {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #9cdcfe;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            background: #3c3c3c;
+            border: 1px solid #404040;
+            color: #d4d4d4;
+            border-radius: 3px;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #007acc;
+            background: #252526;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007acc;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #005a9e;
+        }
+
+        .resposta {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border: 1px solid #404040;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .resposta pre {
+            color: #ce9178;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .sucesso {
+            border-left-color: #4ec9b0;
+        }
+
+        .erro {
+            border-left-color: #f48771;
+        }
+
+        .info {
+            background: #1f4788;
+            padding: 10px;
+            border-radius: 3px;
+            margin-bottom: 15px;
+            border-left: 3px solid #007acc;
+        }
+
+        .voltar {
+            margin-bottom: 20px;
+        }
+
+        .voltar a {
+            color: #007acc;
+            text-decoration: none;
+        }
+
+        .voltar a:hover {
+            color: #4ec9b0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="voltar">
+            <a href="/">← Voltar ao site</a>
+        </div>
+
+        <h1>🧪 Teste de API - GameStore</h1>
+
+        <div class="info">
+            <p>
+                Esta página permite testar todas as rotas da API.
+                Útil para entender como o frontend e backend se comunicam.
+            </p>
+        </div>
+
+        <!-- SEÇÃO: AUTENTICAÇÃO -->
+        <div class="secao">
+            <h2>🔐 Autenticação</h2>
+            
+            <div class="opcoes">
+                <div class="opcao" onclick="selecionarOpcao('registro')">
+                    <h3>Registrar</h3>
+                    <p>POST /api/auth/registro</p>
+                </div>
+                <div class="opcao" onclick="selecionarOpcao('login')">
+                    <h3>Login</h3>
+                    <p>POST /api/auth/login</p>
+                </div>
+            </div>
+
+            <!-- Formulário: Registro -->
+            <form id="formRegistro" class="formulario">
+                <div class="grupo">
+                    <label>Nome:</label>
+                    <input type="text" id="regNome" placeholder="João Silva" required>
+                </div>
+                <div class="grupo">
+                    <label>Email:</label>
+                    <input type="email" id="regEmail" placeholder="joao@gmail.com" required>
+                </div>
+                <div class="grupo">
+                    <label>Senha:</label>
+                    <input type="password" id="regSenha" placeholder="SenhaForte123!" required>
+                </div>
+                <button type="button" onclick="testarRegistro()">Registrar</button>
+            </form>
+
+            <!-- Formulário: Login -->
+            <form id="formLogin" class="formulario">
+                <div class="grupo">
+                    <label>Email:</label>
+                    <input type="email" id="loginEmail" placeholder="joao@gmail.com" required>
+                </div>
+                <div class="grupo">
+                    <label>Senha:</label>
+                    <input type="password" id="loginSenha" placeholder="SenhaForte123!" required>
+                </div>
+                <button type="button" onclick="testarLogin()">Login</button>
+            </form>
+
+            <div id="respostaAuth" class="resposta" style="display: none;"></div>
+        </div>
+
+        <!-- SEÇÃO: PRODUTOS -->
+        <div class="secao">
+            <h2>📦 Produtos</h2>
+            
+            <div class="opcoes">
+                <div class="opcao" onclick="testarListarJogos()">
+                    <h3>Listar Todos</h3>
+                    <p>GET /api/jogos</p>
+                </div>
+                <div class="opcao" onclick="testarJogoEspecifico()">
+                    <h3>Jogo por ID</h3>
+                    <p>GET /api/jogos/:id</p>
+                </div>
+                <div class="opcao" onclick="testarFiltroGenero()">
+                    <h3>Filtrar por Gênero</h3>
+                    <p>GET /api/jogos?genero=RPG</p>
+                </div>
+            </div>
+
+            <div id="respostaProdutos" class="resposta" style="display: none;"></div>
+        </div>
+
+        <!-- SEÇÃO: STATUS -->
+        <div class="secao">
+            <h2>✅ Status</h2>
+            
+            <button onclick="testarStatus()">Verificar Status do Servidor</button>
+            <div id="respostaStatus" class="resposta" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        /*
+          ARQUIVO: frontend/teste.html (JavaScript)
+          DESCRIÇÃO: Testes de API
+          
+          Use este arquivo para aprender como as requisições funcionam
+        */
+
+        // ============================================
+        // FUNÇÃO: Selecionar opção
+        // ============================================
+        function selecionarOpcao(nome) {
+            // Esconder todos os formulários
+            document.querySelectorAll('.formulario').forEach(f => {
+                f.classList.remove('ativo');
+            });
+
+            // Mostrar selecionado
+            const form = document.getElementById(`form${nome.charAt(0).toUpperCase() + nome.slice(1)}`);
+            if (form) form.classList.add('ativo');
+
+            // Atualizar opções
+            document.querySelectorAll('.opcao').forEach(o => {
+                o.classList.remove('ativo');
+            });
+            event.target.closest('.opcao').classList.add('ativo');
+        }
+
+        // ============================================
+        // FUNÇÃO: Mostrar resposta
+        // ============================================
+        function mostrarResposta(elementoId, dados, tipo = 'sucesso') {
+            const elemento = document.getElementById(elementoId);
+            elemento.className = `resposta ${tipo}`;
+            elemento.innerHTML = `
+                <pre>${JSON.stringify(dados, null, 2)}</pre>
+            `;
+            elemento.style.display = 'block';
+        }
+
+        // ============================================
+        // TESTE: Status
+        // ============================================
+        async function testarStatus() {
+            console.log('📊 Testando status...');
+
+            try {
+                const resposta = await fetch('/api/status');
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    mostrarResposta('respostaStatus', dados, 'sucesso');
+                } else {
+                    mostrarResposta('respostaStatus', dados, 'erro');
+                }
+            } catch (erro) {
+                mostrarResposta('respostaStatus', { erro: erro.message }, 'erro');
+            }
+        }
+
+        // ============================================
+        // TESTE: Registrar
+        // ============================================
+        async function testarRegistro() {
+            const nome = document.getElementById('regNome').value;
+            const email = document.getElementById('regEmail').value;
+            const senha = document.getElementById('regSenha').value;
+
+            console.log('📝 Testando registro...');
+
+            try {
+                const resposta = await fetch('/api/auth/registro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, senha })
+                });
+
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    // Guardar token
+                    localStorage.setItem('token', dados.token);
+                    mostrarResposta('respostaAuth', dados, 'sucesso');
+                } else {
+                    mostrarResposta('respostaAuth', dados, 'erro');
+                }
+            } catch (erro) {
+                mostrarResposta('respostaAuth', { erro: erro.message }, 'erro');
+            }
+        }
+
+        // ============================================
+        // TESTE: Login
+        // ============================================
+        async function testarLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            console.log('🔐 Testando login...');
+
+            try {
+                const resposta = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    localStorage.setItem('token', dados.token);
+                    mostrarResposta('respostaAuth', dados, 'sucesso');
+                } else {
+                    mostrarResposta('respostaAuth', dados, 'erro');
+                }
+            } catch (erro) {
+                mostrarResposta('respostaAuth', { erro: erro.message }, 'erro');
+            }
+        }
+
+        // ============================================
+        // TESTE: Listar todos os jogos
+        // ============================================
+        async function testarListarJogos() {
+            console.log('📦 Listando todos os jogos...');
+
+            try {
+                const resposta = await fetch('/api/jogos');
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    mostrarResposta('respostaProdutos', {
+                        total: dados.total,
+                        primeiroJogo: dados.jogos[0],
+                        ...dados
+                    }, 'sucesso');
+                } else {
+                    mostrarResposta('respostaProdutos', dados, 'erro');
+                }
+            } catch (erro) {
+                mostrarResposta('respostaProdutos', { erro: erro.message }, 'erro');
+            }
+        }
+
+        // ============================================
+        // TESTE: Jogo específico
+        // ============================================
+        async function testarJogoEspecifico() {
+            console.log('🎮 Buscando jogo com ID=1...');
+
+            try {
+                const resposta = await fetch('/api/jogos/1');
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    mostrarResposta('respostaProdutos', dados, 'sucesso');
+                } else {
+                    mostrarResposta('respostaProdutos', dados, 'erro');
+                }
+            } catch (erro) {
+                mostrarResposta('respostaProdutos', { erro: erro.message }, 'erro');
+            }
+        }
+
+        // ============================================
+        // TESTE: Filtro por gênero
+        // ============================================
+        async function testarFiltroGenero() {
+            console.log('🎮 Filtrando por gênero RPG...');
+
+            try {
+                const resposta = await fetch('/api/jogos?genero=RPG');
+                const dados = await resposta.json();
+
+                if (resposta.ok) {
+                    mostrarResposta('respostaProdutos', {
+                        total: dados.total,
+                        genero: 'RPG',
+                        jogos: dados.jogos
+                    }, 'sucesso');
+                } else {
+                    mostrarResposta('respostaProdutos', dados, 'erro');
+                }
+            } catch (erro) {
+                mostrarResposta('respostaProdutos', { erro: erro.message }, 'erro');
+            }
+        }
+
+        // Testar status automaticamente ao carregar
+        window.addEventListener('load', () => {
+            console.log('🧪 Página de testes carregada');
+            testarStatus();
+        });
+    </script>
+</body>
+</html>
