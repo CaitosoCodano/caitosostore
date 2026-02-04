@@ -9,156 +9,28 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Trumbowyg/2.25.2/ui/trumbowyg.min.css">
     
     <style>
-        :root {
-            --bg-dark: #121212;
-            --bg-card: #1e1e1e;
-            --primary: #00ff88;
-            --text: #fff;
-            --border: #333;
-        }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text);
-            margin: 0;
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            min-height: 100vh;
-        }
-        
-        /* Sidebar */
-        .sidebar {
-            background-color: var(--bg-card);
-            border-right: 1px solid var(--border);
-            padding: 20px;
-        }
-        .logo {
-            color: var(--primary);
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 40px;
-            display: block;
-            text-decoration: none;
-        }
-        .menu-item {
-            display: block;
-            padding: 15px;
-            color: #aaa;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-        .menu-item:hover, .menu-item.active {
-            background-color: #333;
-            color: #fff;
-        }
-        .btn-logout {
-            margin-top: auto;
-            color: #ff4444;
-        }
-
-        /* Conteúdo Principal */
-        .main-content {
-            padding: 40px;
-            overflow-y: auto;
-            width: 100%;
-            max-width: none;
-        }
-        .section {
-            display: none; /* Esconde todas as seções por padrão */
-        }
-        .section.active {
-            display: block; /* Mostra a ativa */
-        }
-        
-        h2 { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
-        
-        /* Formulários */
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #ccc; }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            background: #2a2a2a;
-            border: 1px solid var(--border);
-            color: #fff;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        button.btn-save {
-            background-color: var(--primary);
-            color: #000;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        /* Editor Visual - Ajustes Dark Mode */
-        .trumbowyg-box { 
-            width: 100%;
-            margin-top: 10px; 
-            border: 1px solid var(--border);
-            background-color: #2a2a2a;
-        }
-        .trumbowyg-button-pane {
-            background-color: #333;
-            border-bottom: 1px solid var(--border);
-            z-index: 10;
-        }
-        .trumbowyg-button-pane button {
-            transition: all 0.2s;
-        }
-        .trumbowyg-button-pane button:hover, 
-        .trumbowyg-button-pane button.trumbowyg-active {
-            background-color: #444;
-        }
-        .trumbowyg-editor { 
-            background-color: #1e1e1e;
-            color: #e0e0e0;
-            min-height: 400px;
-            font-size: 16px;
-            line-height: 1.6;
-        }
-        /* Forçar cor dos ícones para branco */
-        .trumbowyg-box svg {
-            fill: #fff !important;
-        }
-        /* Dropdowns do editor */
-        .trumbowyg-dropdown {
-            background-color: #333;
-            border: 1px solid var(--border);
-            color: #fff;
-        }
-        .trumbowyg-dropdown button {
-            color: #fff !important;
-        }
-        .trumbowyg-dropdown button:hover {
-            background-color: #444;
-        }
-         
-         /* Correções de largura do editor para não "espremir" no canto */
-         .trumbowyg-box,
-         .trumbowyg-editor {
-             width: 100% !important;
-             display: block;
-             box-sizing: border-box;
-             min-width: 0;
-         }
-         /* Ocultar textarea quando o editor visual está ativo para não afetar layout */
-         .trumbowyg-box.trumbowyg-editor-visible .trumbowyg-textarea {
-             display: none !important;
-             width: 100% !important;
-             height: 0 !important;
-             padding: 0 !important;
-             margin: 0 !important;
-         }
-         /* Garantir que o container do editor ocupe toda a largura disponível */
-         #paginas .form-group {
-             max-width: 100%;
-         }
+        :root { --bg-dark:#121212; --bg-card:#1e1e1e; --primary:#00ff88; --text:#fff; --border:#333; }
+        * { box-sizing: border-box; }
+        body { font-family:'Poppins',sans-serif; background:var(--bg-dark); color:var(--text); margin:0; display:flex; min-height:100vh; }
+        .sidebar { width:280px; flex-shrink:0; background:var(--bg-card); border-right:1px solid var(--border); padding:24px; display:flex; flex-direction:column; gap:8px; }
+        .logo { color:var(--primary); font-size:24px; font-weight:700; margin-bottom:24px; display:block; text-decoration:none; }
+        .menu-item { display:block; width:100%; padding:14px 16px; color:#ddd; background:#2a2a2a; border:1px solid var(--border); border-radius:8px; }
+        .menu-item:hover, .menu-item.active { background:#3a3a3a; color:#fff; }
+        .btn-logout { color:#ff6b6b; }
+        .main-content { flex:1; padding:32px; min-width:0; }
+        .content { width:100%; max-width:1200px; margin:0 auto; }
+        h2 { margin:0 0 16px; padding:0 0 12px; border-bottom:1px solid var(--border); font-weight:600; }
+        .section { display:none; }
+        .section.active { display:block; }
+        .form-group { margin-bottom:20px; }
+        label { display:block; margin-bottom:8px; color:#bbb; }
+        input, select, textarea { width:100%; padding:12px; background:#2a2a2a; border:1px solid var(--border); color:#fff; border-radius:8px; }
+        .btn-save { background:var(--primary); color:#000; padding:12px 18px; border:none; border-radius:8px; font-weight:700; }
+        .editor-wrapper { width:100%; }
+        .trumbowyg-box { width:100%; background:#2a2a2a; border:1px solid var(--border); }
+        .trumbowyg-button-pane { background:#333; border-bottom:1px solid var(--border); }
+        .trumbowyg-box svg { fill:#fff; }
+        .trumbowyg-editor { background:#1e1e1e; color:#e0e0e0; min-height:480px; font-size:16px; line-height:1.6; }
     </style>
 </head>
 <body>
@@ -174,6 +46,7 @@
 
     <!-- MAIN CONTENT -->
     <div class="main-content">
+        <div class="content">
         
         <!-- SEÇÃO: GERENCIAR JOGOS -->
         <div id="jogos" class="section active">
@@ -228,14 +101,15 @@
             
             <div class="form-group">
                 <label>Conteúdo Visual</label>
-                <!-- Editor Rico -->
-                <textarea id="editorConteudo"></textarea>
+                <div class="editor-wrapper">
+                    <textarea id="editorConteudo"></textarea>
+                </div>
             </div>
             
             <button onclick="salvarPagina()" class="btn-save">Atualizar Site</button>
         </div>
 
-    </div>
+        </div>
 
     <!-- SCRIPTS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
