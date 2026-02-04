@@ -133,6 +133,27 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
+// ============================================
+// ROTAS DO ADMIN (PAINEL DO DESENVOLVEDOR)
+// ============================================
+
+// Rota de Login do Admin
+app.get('/devadmin/login/deveditor', (req, res) => {
+  const path = require('path');
+  res.sendFile(path.join(__dirname, 'frontend', 'admin-login.html'));
+});
+
+// Rota do Dashboard do Admin
+app.get('/devadmin/dashboard', (req, res) => {
+  const path = require('path');
+  res.sendFile(path.join(__dirname, 'frontend', 'admin-dashboard.html'));
+});
+
+// Importar e usar rotas da API Admin
+const adminRoutes = require('./backend/admin');
+app.use('/api/admin', adminRoutes);
+
+
 // Rota para aceitar /frontend/* e servir do mesmo lugar que /*
 app.get('/frontend/*', (req, res) => {
   // Pegar o caminho relativo (/login.html de /frontend/login.html)
@@ -219,11 +240,14 @@ app.post('/api/auth/registro', async (req, res) => {
     const bcrypt = require('bcryptjs');
     const senhaHash = await bcrypt.hash(senha, 10);
 
-    // 6. Inserir novo usuário no banco
+    // 6. Gerar código de verificação (OTP) de 6 dígitos
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // 7. Inserir novo usuário no banco (is_verified = 0)
     const resultado = await new Promise((resolver, rejeitar) => {
       db.run(
-        'INSERT INTO usuarios (email, nome, senha) VALUES (?, ?, ?)',
-        [emailValidado.email, nomeValidado.nome, senhaHash],
+        'INSERT INTO usuarios (email, nome, senha, is_verified, verification_code) VALUES (?, ?, ?, 0, ?)',
+        [emailValidado.email, nomeValidado.nome, senhaHash, verificationCode],
         function(erro) {
           if (erro) rejeitar(erro);
           else resolver({ id: this.lastID });
@@ -231,23 +255,17 @@ app.post('/api/auth/registro', async (req, res) => {
       );
     });
 
-    // 7. Gerar JWT (token de autenticação)
-    const jwt = require('jsonwebtoken');
-    const token = jwt.sign(
-      { id: resultado.id, email: emailValidado.email },
-      process.env.JWT_SECRET || 'chave_secreta_padrao',
-      { expiresIn: process.env.JWT_EXPIRE || '7d' }
-    );
+    // 8. SIMULAÇÃO DE ENVIO DE EMAIL
+    console.log('==================================================');
+    console.log(`📧 ENVIO DE EMAIL PARA: ${emailValidado.email}`);
+    console.log(`🔑 CÓDIGO DE VERIFICAÇÃO: ${verificationCode}`);
+    console.log('==================================================');
 
-    // 8. Retornar sucesso
+    // 9. Retornar sucesso (sem token)
     res.status(201).json({
-      mensagem: '✅ Registro realizado com sucesso!',
-      token: token,
-      usuario: {
-        id: resultado.id,
-        email: emailValidado.email,
-        nome: nomeValidado.nome
-      }
+      mensagem: '✅ Registro realizado! Verifique seu email para ativar a conta.',
+      precisaVerificar: true,
+      email: emailValidado.email
     });
 
   } catch (erro) {
@@ -255,6 +273,53 @@ app.post('/api/auth/registro', async (req, res) => {
     res.status(500).json({
       erro: 'Erro ao registrar. Tente novamente.'
     });
+  }
+});
+
+/*
+  POST /api/auth/verificar
+  Validar código OTP enviado por email
+*/
+app.post('/api/auth/verificar', async (req, res) => {
+  try {
+    const { email, codigo } = req.body;
+
+    if (!email || !codigo) {
+      return res.status(400).json({ erro: 'Email e código são obrigatórios' });
+    }
+
+    const usuario = await new Promise((resolver, rejeitar) => {
+      db.get('SELECT * FROM usuarios WHERE email = ?', [email], (erro, row) => {
+        if (erro) rejeitar(erro);
+        else resolver(row);
+      });
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ erro: 'Usuário não encontrado.' });
+    }
+
+    if (usuario.is_verified === 1) {
+      return res.status(400).json({ erro: 'Conta já verificada.' });
+    }
+
+    if (usuario.verification_code !== codigo) {
+      return res.status(400).json({ erro: 'Código inválido.' });
+    }
+
+    // Ativar conta
+    await new Promise((resolver, rejeitar) => {
+      db.run('UPDATE usuarios SET is_verified = 1, verification_code = NULL WHERE id = ?', [usuario.id], (erro) => {
+        if (erro) rejeitar(erro);
+        else resolver();
+      });
+    });
+
+    res.json({ mensagem: '✅ Conta ativada com sucesso! Faça login.' });
+
+  } catch (erro) {
+    console.error('❌ Erro na verificação:', erro);
+    res.status(500).json({ erro: 'Erro ao verificar conta.' });
   }
 });
 
@@ -292,6 +357,15 @@ app.post('/api/auth/login', async (req, res) => {
       // Não dizer qual é o erro (segurança)
       return res.status(401).json({
         erro: 'Email ou senha incorretos'
+      });
+    }
+
+    // Verificar se conta está verificada
+    if (usuario.is_verified === 0) {
+      return res.status(403).json({
+        erro: 'Conta não verificada. Verifique seu email.',
+        precisaVerificar: true,
+        email: usuario.email
       });
     }
 

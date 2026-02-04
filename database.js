@@ -55,8 +55,14 @@ function criarTabelas() {
       -- Data de criação da conta
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       
-      -- Última atualização
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      --// Última atualização
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+      // Status de verificação do email (0 = não, 1 = sim)
+      is_verified INTEGER DEFAULT 0,
+
+      // Código de verificação (OTP)
+      verification_code TEXT
     )
   `, (erro) => {
     if (erro) {
@@ -281,6 +287,30 @@ function criarTabelas() {
     }
   });
 
+  // Tabela 8: CONTEUDO_PAGINAS (Para o CMS do Admin)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS conteudo_paginas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT UNIQUE NOT NULL, -- ex: 'sobre', 'contato', 'inicio_titulo'
+      conteudo TEXT,
+      atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (erro) => {
+    if (erro) console.error('❌ Erro ao criar tabela conteudo_paginas:', erro.message);
+    else {
+      console.log('✅ Tabela conteudo_paginas criada/verificada');
+      // Inserir dados padrão se vazio
+      db.get('SELECT COUNT(*) as total FROM conteudo_paginas', (err, row) => {
+        if (!err && row.total === 0) {
+          db.run(`INSERT INTO conteudo_paginas (slug, conteudo) VALUES 
+            ('sobre', '<h1>Sobre Nós</h1><p>Somos a melhor loja de jogos do Brasil. Nascemos da paixão por games.</p>'),
+            ('contato', '<h1>Fale Conosco</h1><p>Email: contato@gamestore.com<br>Tel: (11) 99999-9999</p>')
+          `);
+        }
+      });
+    }
+  });
+
   console.log('✅ Todas as tabelas foram criadas/verificadas com sucesso!');
 }
 
@@ -292,136 +322,9 @@ function criarTabelas() {
   ============================================
 */
 function popularComDados() {
-  // Verificar se já tem jogos no banco (se tiver, não adiciona de novo)
-  db.get('SELECT COUNT(*) as total FROM jogos', (erro, resultado) => {
-    if (erro) {
-      console.error('❌ Erro ao verificar jogos:', erro.message);
-      return;
-    }
-
-    // Se não tem jogos, adicionar alguns reais
-    if (resultado.total === 0) {
-      const jogos = [
-        {
-          nome: 'Cyberpunk 2077',
-          descricao: 'RPG futurista em Night City. Customize seu personagem e explore um mundo aberto incível.',
-          preco: 149.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co23d4.jpg',
-          genero: 'RPG',
-          plataforma: 'PC, PlayStation 5, Xbox Series X',
-          classificacao: '18'
-        },
-        {
-          nome: 'EA Sports FC 24',
-          descricao: 'Jogo de futebol com todos os times e jogadores reais. Modo carreira, Ultimate Team e mais.',
-          preco: 209.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co68ha.jpg',
-          genero: 'Esportes',
-          plataforma: 'PC, PlayStation 5, Xbox Series X, Nintendo Switch',
-          classificacao: '3'
-        },
-        {
-          nome: 'God of War: Ragnarok',
-          descricao: 'Aventura épica de Kratos. Conclua a jornada nórdica em um cenário de destruição apocalíptica.',
-          preco: 249.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co52ug.jpg',
-          genero: 'Ação-Aventura',
-          plataforma: 'PlayStation 5',
-          classificacao: '18'
-        },
-        {
-          nome: 'The Legend of Zelda: Tears of the Kingdom',
-          descricao: 'A sequência esperada de Breath of the Wild. Explore Hyrule com novos poderes e mecanismos.',
-          preco: 299.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co5r7a.jpg',
-          genero: 'Ação-Aventura',
-          plataforma: 'Nintendo Switch',
-          classificacao: '12'
-        },
-        {
-          nome: 'Final Fantasy XVI',
-          descricao: 'JRPG espetacular com gráficos de última geração. Siga Clive em sua jornada épica.',
-          preco: 279.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co5kho.jpg',
-          genero: 'RPG',
-          plataforma: 'PlayStation 5',
-          classificacao: '16'
-        },
-        {
-          nome: 'Hogwarts Legacy',
-          descricao: 'Explore o mundo mágico de Harry Potter como um novo aluno. Estude magia e enfrente desafios.',
-          preco: 199.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co4uip.jpg',
-          genero: 'RPG',
-          plataforma: 'PC, PlayStation 5, Xbox Series X, Nintendo Switch',
-          classificacao: '12'
-        },
-        {
-          nome: 'Elden Ring',
-          descricao: 'Action RPG desafiador do criador de Dark Souls. Explore as Terras Intermédias em um mundo aberto.',
-          preco: 229.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co5mzl.jpg',
-          genero: 'RPG',
-          plataforma: 'PC, PlayStation 5, Xbox Series X',
-          classificacao: '16'
-        },
-        {
-          nome: 'Baldur\'s Gate 3',
-          descricao: 'RPG épico baseado em D&D. Milhares de escolhas que afetam sua história. Jogue solo ou em grupo.',
-          preco: 239.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co5na8.jpg',
-          genero: 'RPG',
-          plataforma: 'PC, PlayStation 5, Xbox Series X',
-          classificacao: '18'
-        },
-        {
-          nome: 'Call of Duty: Modern Warfare II',
-          descricao: 'FPS tático com campanha épica e multiplayer intenso. Jogue online com amigos.',
-          preco: 259.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co5ozl.jpg',
-          genero: 'FPS',
-          plataforma: 'PC, PlayStation 5, Xbox Series X',
-          classificacao: '18'
-        },
-        {
-          nome: 'Starfield',
-          descricao: 'Exploração espacial em primeira pessoa. Customize sua nave e explore centenas de planetas.',
-          preco: 269.90,
-          imagem_url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co5r1q.jpg',
-          genero: 'RPG',
-          plataforma: 'PC, Xbox Series X',
-          classificacao: '16'
-        }
-      ];
-
-      // Inserir cada jogo no banco
-      const stmt = db.prepare(`
-        INSERT INTO jogos (nome, descricao, preco, imagem_url, genero, plataforma, classificacao)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      jogos.forEach((jogo) => {
-        stmt.run(
-          jogo.nome,
-          jogo.descricao,
-          jogo.preco,
-          jogo.imagem_url,
-          jogo.genero,
-          jogo.plataforma,
-          jogo.classificacao,
-          (erro) => {
-            if (erro) {
-              console.error(`❌ Erro ao adicionar ${jogo.nome}:`, erro.message);
-            }
-          }
-        );
-      });
-
-      stmt.finalize(() => {
-        console.log('✅ 10 jogos reais adicionados ao banco de dados!');
-      });
-    }
-  });
+  // A pedido do usuário, removemos a criação automática de jogos "fakes" ou de exemplo.
+  // O banco começará vazio ou apenas com o que o admin adicionar.
+  console.log('ℹ️ Banco de dados pronto. Nenhum jogo adicionado automaticamente (Modo Produção).');
 }
 
 /*

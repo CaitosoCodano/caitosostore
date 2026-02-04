@@ -183,9 +183,47 @@
             text-decoration: none;
             font-weight: 600;
         }
+        /* Modal de verificação de email */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .modal-box input {
+            text-align: center;
+            letter-spacing: 5px;
+            font-size: 24px;
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Modal de Verificação de Email -->
+    <div id="modalVerificacao" class="modal-overlay">
+        <div class="modal-box">
+            <h2>📧 Verifique seu Email</h2>
+            <p>Enviamos um código de 6 dígitos para <strong id="emailVerificacao"></strong>.</p>
+            <p><small>(Verifique também a caixa de spam)</small></p>
+            
+            <input type="text" id="codigoInput" placeholder="000000" maxlength="6">
+            <button onclick="confirmarCodigo()" class="btn-submit">Confirmar Código</button>
+            <p id="erroVerificacao" class="erro"></p>
+        </div>
+    </div>
+
     <div class="container-login">
         <!-- Logo -->
         <h1>🎮 GameStore</h1>
@@ -395,6 +433,9 @@
             }
         }
 
+        // Variável para armazenar email temporariamente
+        let emailParaVerificar = '';
+
         // ============================================
         // FUNÇÃO: Handle Login
         // ============================================
@@ -406,47 +447,47 @@
 
             const email = document.getElementById('emailLogin').value;
             const senha = document.getElementById('senhaLogin').value;
-
-            console.log('🔐 Tentando fazer login com:', email);
+            
+            // Limpar mensagens anteriores
+            document.getElementById('mensagemLogin').textContent = '';
 
             try {
-                // Enviar requisição POST para servidor
+                // Enviar dados para o servidor
                 const resposta = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        email: email,
-                        senha: senha
-                    })
+                    body: JSON.stringify({ email, senha })
                 });
 
-                // Ler resposta do servidor
+                // Converter resposta para JSON
                 const dados = await resposta.json();
 
                 if (resposta.ok) {
-                    // ✅ Login bem-sucedido
-                    console.log('✅ Login realizado!');
-                    mostrarMensagem('mensagemLogin', '✅ ' + dados.mensagem, 'sucesso');
-
-                    // Guardar token no localStorage (para próximas requisições)
+                    // Se sucesso, salvar token e redirecionar
+                    mostrarMensagem('mensagemLogin', '✅ Login realizado!', 'sucesso');
+                    
+                    // Salvar no LocalStorage (navegador)
                     localStorage.setItem('token', dados.token);
                     localStorage.setItem('usuario', JSON.stringify(dados.usuario));
-
-                    // Redirecionar para página principal após 2 segundos
+                    
+                    // Redirecionar para home após 1 segundo
                     setTimeout(() => {
                         window.location.href = '/';
-                    }, 2000);
+                    }, 1000);
                 } else {
-                    // ❌ Erro no login
-                    console.error('❌ Erro:', dados.erro);
-                    mostrarMensagem('mensagemLogin', '❌ ' + dados.erro, 'erro');
+                    // Se erro
+                    if (dados.precisaVerificar) {
+                        emailParaVerificar = dados.email;
+                        abrirModalVerificacao(dados.email);
+                    } else {
+                        mostrarMensagem('mensagemLogin', dados.erro, 'erro');
+                    }
                 }
-
             } catch (erro) {
-                console.error('❌ Erro na requisição:', erro);
-                mostrarMensagem('mensagemLogin', '❌ Erro ao conectar com servidor', 'erro');
+                console.error(erro);
+                mostrarMensagem('mensagemLogin', '❌ Erro de conexão com servidor', 'erro');
             }
         }
 
@@ -460,45 +501,69 @@
             const email = document.getElementById('emailRegistro').value;
             const senha = document.getElementById('senhaRegistro').value;
 
-            console.log('📝 Tentando registrar novo usuário:', email);
+            // Limpar mensagens
+            document.getElementById('mensagemRegistro').textContent = '';
 
             try {
+                // Enviar dados para o servidor
                 const resposta = await fetch('/api/auth/registro', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        nome: nome,
-                        email: email,
-                        senha: senha
-                    })
+                    body: JSON.stringify({ nome, email, senha })
                 });
 
                 const dados = await resposta.json();
 
                 if (resposta.ok) {
-                    // ✅ Registro bem-sucedido
-                    console.log('✅ Registro realizado!');
-                    mostrarMensagem('mensagemRegistro', '✅ ' + dados.mensagem, 'sucesso');
-
-                    // Guardar token
-                    localStorage.setItem('token', dados.token);
-                    localStorage.setItem('usuario', JSON.stringify(dados.usuario));
-
-                    // Redirecionar após 2 segundos
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 2000);
+                    // SUCESSO!
+                    mostrarMensagem('mensagemRegistro', dados.mensagem, 'sucesso');
+                    
+                    if (dados.precisaVerificar) {
+                        emailParaVerificar = dados.email;
+                        setTimeout(() => abrirModalVerificacao(dados.email), 1500);
+                    }
                 } else {
-                    // ❌ Erro no registro
-                    console.error('❌ Erro:', dados.erro);
-                    mostrarMensagem('mensagemRegistro', '❌ ' + dados.erro, 'erro');
+                    // ERRO
+                    mostrarMensagem('mensagemRegistro', dados.erro, 'erro');
                 }
-
             } catch (erro) {
-                console.error('❌ Erro na requisição:', erro);
-                mostrarMensagem('mensagemRegistro', '❌ Erro ao conectar com servidor', 'erro');
+                console.error(erro);
+                mostrarMensagem('mensagemRegistro', '❌ Erro de conexão com servidor', 'erro');
+            }
+        }
+
+        // FUNÇÃO: Abrir modal de verificação
+        function abrirModalVerificacao(email) {
+            document.getElementById('emailVerificacao').innerText = email;
+            document.getElementById('modalVerificacao').style.display = 'flex';
+        }
+
+        // FUNÇÃO: Confirmar código OTP
+        async function confirmarCodigo() {
+            const codigo = document.getElementById('codigoInput').value;
+            const erroMsg = document.getElementById('erroVerificacao');
+            
+            try {
+                const response = await fetch('/api/auth/verificar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: emailParaVerificar, codigo })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Conta verificada com sucesso! Agora faça login.');
+                    window.location.reload(); // Recarregar para limpar formulários
+                } else {
+                    erroMsg.innerText = data.erro || 'Código inválido';
+                    erroMsg.style.color = 'red';
+                }
+            } catch (err) {
+                console.error(err);
+                erroMsg.innerText = 'Erro ao verificar código';
             }
         }
     </script>

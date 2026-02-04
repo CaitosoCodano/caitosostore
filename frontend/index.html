@@ -73,7 +73,7 @@
     <main>
         <!-- SEÇÃO HERO (INÍCIO) -->
         <section id="inicio" class="hero">
-            <div class="container">
+            <div class="container" id="conteudoInicio">
                 <h2>Bem-vindo à GameStore!</h2>
                 <p>A melhor loja de jogos online do Brasil. Milhares de títulos com os melhores preços.</p>
                 <a href="#jogos" class="btn">Ver Ofertas</a>
@@ -479,6 +479,39 @@
             document.getElementById('contadorCarrinho').textContent = carrinho.length;
             document.getElementById('contadorFavoritos').textContent = favoritos.length;
         }
+
+        // ============================================
+        // FUNÇÃO: Carregar conteúdo dinâmico (CMS)
+        // ============================================
+        async function carregarConteudoDinamico() {
+            try {
+                // Carregar páginas
+                const paginas = ['inicio', 'sobre', 'contato'];
+                
+                for (const pagina of paginas) {
+                    const res = await fetch(`/api/admin/conteudo/${pagina}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.conteudo) {
+                            const elemento = document.getElementById(`conteudo${pagina.charAt(0).toUpperCase() + pagina.slice(1)}`);
+                            if (elemento) {
+                                elemento.innerHTML = data.conteudo;
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Erro ao carregar conteúdo dinâmico:', err);
+            }
+        }
+
+        // Inicializar
+        window.onload = () => {
+            verificarLogin();
+            carregarJogos();
+            atualizarContadores();
+            carregarConteudoDinamico();
+        };
 
         // ============================================
         // FUNÇÃO: Handle contato

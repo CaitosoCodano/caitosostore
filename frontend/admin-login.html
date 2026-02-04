@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login do Desenvolvedor | GameStore Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-box {
+            background-color: #1e1e1e;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+        .login-box h1 {
+            color: #00ff88;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            background-color: #2a2a2a;
+            color: #fff;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .btn-entrar {
+            width: 100%;
+            padding: 12px;
+            background-color: #00ff88;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .btn-entrar:hover {
+            background-color: #00cc6a;
+        }
+        .aviso {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        #msgErro {
+            color: #ff4444;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <h1>🔒 Acesso Dev</h1>
+        <p>Área restrita para administração</p>
+        
+        <form id="formAdminLogin">
+            <div class="form-group">
+                <label for="usuario">Usuário Dev</label>
+                <input type="text" id="usuario" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="senha">Senha Forte</label>
+                <input type="password" id="senha" required>
+            </div>
+            
+            <button type="submit" class="btn-entrar">Acessar Painel</button>
+            <p id="msgErro"></p>
+        </form>
+
+        <div class="aviso">
+            ⚠️ Apenas pessoal autorizado. Tentativas monitoradas.
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('formAdminLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const usuario = document.getElementById('usuario').value;
+            const senha = document.getElementById('senha').value;
+            const msgErro = document.getElementById('msgErro');
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, senha })
+                });
+                
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    // Salvar token e redirecionar
+                    localStorage.setItem('adminToken', data.token);
+                    window.location.href = '/devadmin/dashboard';
+                } else {
+                    msgErro.style.display = 'block';
+                    msgErro.innerText = data.erro || 'Erro ao entrar';
+                }
+            } catch (erro) {
+                console.error(erro);
+                msgErro.style.display = 'block';
+                msgErro.innerText = 'Erro de conexão';
+            }
+        });
+    </script>
+</body>
+</html>
