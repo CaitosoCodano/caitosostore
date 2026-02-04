@@ -55,13 +55,13 @@ function criarTabelas() {
       -- Data de criação da conta
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       
-      --// Última atualização
+      -- Última atualização
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-      // Status de verificação do email (0 = não, 1 = sim)
+      -- Status de verificação do email (0 = não, 1 = sim)
       is_verified INTEGER DEFAULT 0,
 
-      // Código de verificação (OTP)
+      -- Código de verificação (OTP)
       verification_code TEXT
     )
   `, (erro) => {
