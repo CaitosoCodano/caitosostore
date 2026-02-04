@@ -94,9 +94,48 @@
             font-weight: bold;
         }
         
-        /* Editor Visual */
-        .trumbowyg-box { margin-top: 10px; background: #fff; color: #000; }
-        .trumbowyg-editor { background: #fff; color: #000; min-height: 300px; }
+        /* Editor Visual - Ajustes Dark Mode */
+        .trumbowyg-box { 
+            width: 100%;
+            margin-top: 10px; 
+            border: 1px solid var(--border);
+            background-color: #2a2a2a;
+        }
+        .trumbowyg-button-pane {
+            background-color: #333;
+            border-bottom: 1px solid var(--border);
+            z-index: 10;
+        }
+        .trumbowyg-button-pane button {
+            transition: all 0.2s;
+        }
+        .trumbowyg-button-pane button:hover, 
+        .trumbowyg-button-pane button.trumbowyg-active {
+            background-color: #444;
+        }
+        .trumbowyg-editor { 
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            min-height: 400px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        /* Forçar cor dos ícones para branco */
+        .trumbowyg-box svg {
+            fill: #fff !important;
+        }
+        /* Dropdowns do editor */
+        .trumbowyg-dropdown {
+            background-color: #333;
+            border: 1px solid var(--border);
+            color: #fff;
+        }
+        .trumbowyg-dropdown button {
+            color: #fff !important;
+        }
+        .trumbowyg-dropdown button:hover {
+            background-color: #444;
+        }
     </style>
 </head>
 <body>
