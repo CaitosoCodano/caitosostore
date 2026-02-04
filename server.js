@@ -77,9 +77,9 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"], // Permitir inline scripts
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://ajax.googleapis.com", "https://cdnjs.cloudflare.com"], // Permitir inline scripts e CDNs externas (jQuery, Trumbowyg)
       scriptSrcAttr: ["'self'", "'unsafe-inline'"], // Permitir event handlers (onclick, etc)
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"], // Permitir estilos externos (Google Fonts, Trumbowyg)
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"], // Permitir imagens externas
       connectSrc: ["'self'"] // APIs do próprio servidor
