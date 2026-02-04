@@ -71,6 +71,19 @@ function criarTabelas() {
       console.log('✅ Tabela usuarios criada/verificada');
     }
   });
+  
+  // Adicionar coluna avatar_url se não existir
+  db.all(`PRAGMA table_info(usuarios)`, [], (err, cols) => {
+    if (!err) {
+      const existeAvatar = cols.some(c => c.name === 'avatar_url');
+      if (!existeAvatar) {
+        db.run(`ALTER TABLE usuarios ADD COLUMN avatar_url TEXT`, (e2) => {
+          if (e2) console.error('⚠️ Falha ao adicionar avatar_url:', e2.message);
+          else console.log('✅ Coluna avatar_url adicionada');
+        });
+      }
+    }
+  });
 
   // Tabela 2: JOGOS (catálogo de produtos)
   db.run(`

@@ -1,33 +1,35 @@
 /*
   ARQUIVO: backend/admin.js
-  DESCRIÇÃO: Rotas e lógica do Painel Administrativo (Dev/Admin)
+  DESCRIÇÃO: Rotas de administração backend-only (Dev)
   
-  Este arquivo gerencia:
-  - Login do desenvolvedor
-  - CRUD de Jogos (Adicionar, Editar, Remover)
-  - Edição de conteúdo do site (Sobre, Contato, etc)
+  Este arquivo provê:
+  - Autenticação do Dev via credenciais fortes (variáveis de ambiente)
+  - Consulta de usuários e pedidos
+  - Atualização segura de senha (reset), sem exposição de senhas atuais
+  - Leitura/Atualização de conteúdo de páginas (CMS) via backend
 */
 
 const express = require('express');
 const router = express.Router();
 const { db } = require('../database');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 // ============================================
 // CONFIGURAÇÕES DO ADMIN (Hardcoded conforme pedido)
 // ============================================
 
-// Usuário e senha definidos pelo dono do site
-const ADMIN_USER = 'devloginvagnerodev';
-const ADMIN_PASS = '147258@devloginsenhaforte';
+// Credenciais do Dev (usar variáveis de ambiente para segurança)
+const ADMIN_USER = process.env.ADMIN_USER || 'dev_admin_user';
+const ADMIN_PASS = process.env.ADMIN_PASS || 'CH4ve$uperF0rte!2026';
 
 // ============================================
 // ROTAS DE AUTENTICAÇÃO
 // ============================================
 
 /*
-  POST /api/admin/login
-  Verifica credenciais do admin
+  POST /api/dev/login
+  Verifica credenciais do dev
 */
 router.post('/login', (req, res) => {
   const { usuario, senha } = req.body;
@@ -43,7 +45,7 @@ router.post('/login', (req, res) => {
     
     res.json({
       sucesso: true,
-      mensagem: 'Login de Admin realizado com sucesso!',
+      mensagem: 'Login de Dev realizado com sucesso!',
       token: token
     });
   } else {
@@ -58,7 +60,7 @@ router.post('/login', (req, res) => {
 // MIDDLEWARE DE PROTEÇÃO (Verificar se é admin)
 // ============================================
 const verificarAdmin = (req, res, next) => {
-  const token = req.headers['x-admin-token'];
+  const token = req.headers['x-dev-token'] || req.headers['x-admin-token'];
   
   if (!token) {
     return res.status(403).json({ erro: 'Acesso negado. Token não fornecido.' });
@@ -78,45 +80,84 @@ const verificarAdmin = (req, res, next) => {
 };
 
 // ============================================
-// GERENCIAMENTO DE JOGOS
+// DEV: USUÁRIOS E PEDIDOS (somente backend)
 // ============================================
 
-// POST /api/admin/jogos (Adicionar novo jogo)
-router.post('/jogos', verificarAdmin, (req, res) => {
-  const { nome, descricao, preco, imagem_url, genero, plataforma, classificacao } = req.body;
-  
+// GET /api/dev/usuarios
+router.get('/usuarios', verificarAdmin, (req, res) => {
   const sql = `
-    INSERT INTO jogos (nome, descricao, preco, imagem_url, genero, plataforma, classificacao)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    SELECT u.id, u.email, u.nome, u.is_verified, u.created_at, u.avatar_url,
+           COUNT(p.id) as total_pedidos,
+           COALESCE(SUM(p.valor_total), 0) as valor_total
+    FROM usuarios u
+    LEFT JOIN pedidos p ON p.usuario_id = u.id
+    GROUP BY u.id
+    ORDER BY u.created_at DESC
   `;
-  
-  db.run(sql, [nome, descricao, preco, imagem_url, genero, plataforma, classificacao], function(err) {
-    if (err) {
-      return res.status(500).json({ erro: err.message });
-    }
-    res.json({
-      sucesso: true,
-      mensagem: 'Jogo adicionado com sucesso!',
-      id: this.lastID
+  db.all(sql, [], (err, rows) => {
+    if (err) return res.status(500).json({ erro: err.message });
+    res.json({ usuarios: rows });
+  });
+});
+
+// GET /api/dev/usuarios/:id
+router.get('/usuarios/:id', verificarAdmin, (req, res) => {
+  const { id } = req.params;
+  const sqlUser = `SELECT id, email, nome, is_verified, created_at, avatar_url FROM usuarios WHERE id = ?`;
+  const sqlOrders = `
+    SELECT id, valor_total, status, stripe_payment_id, criado_em, atualizado_em
+    FROM pedidos WHERE usuario_id = ? ORDER BY criado_em DESC
+  `;
+  db.get(sqlUser, [id], (err, user) => {
+    if (err) return res.status(500).json({ erro: err.message });
+    if (!user) return res.status(404).json({ erro: 'Usuário não encontrado' });
+    db.all(sqlOrders, [id], (err2, pedidos) => {
+      if (err2) return res.status(500).json({ erro: err2.message });
+      res.json({ usuario: user, pedidos });
     });
   });
 });
 
-// DELETE /api/admin/jogos/:id (Remover jogo)
-router.delete('/jogos/:id', verificarAdmin, (req, res) => {
+// POST /api/dev/usuarios/:id/password (resetar/definir nova senha)
+router.post('/usuarios/:id/password', verificarAdmin, async (req, res) => {
   const { id } = req.params;
-  
-  db.run('DELETE FROM jogos WHERE id = ?', [id], function(err) {
+  const { nova_senha } = req.body;
+  if (!nova_senha || nova_senha.length < 8) {
+    return res.status(400).json({ erro: 'Senha inválida (mínimo 8 caracteres)' });
+  }
+  try {
+    const hash = await bcrypt.hash(nova_senha, 10);
+    db.run(`UPDATE usuarios SET senha = ? WHERE id = ?`, [hash, id], function(err) {
+      if (err) return res.status(500).json({ erro: err.message });
+      res.json({ sucesso: true, mensagem: 'Senha atualizada com sucesso' });
+    });
+  } catch (e) {
+    res.status(500).json({ erro: e.message });
+  }
+});
+
+// GET /api/dev/pedidos
+router.get('/pedidos', verificarAdmin, (req, res) => {
+  const sql = `
+    SELECT p.id, p.usuario_id, u.email, u.nome, p.valor_total, p.status, p.criado_em
+    FROM pedidos p INNER JOIN usuarios u ON u.id = p.usuario_id
+    ORDER BY p.criado_em DESC
+  `;
+  db.all(sql, [], (err, rows) => {
     if (err) return res.status(500).json({ erro: err.message });
-    res.json({ sucesso: true, mensagem: 'Jogo removido com sucesso' });
+    res.json({ pedidos: rows });
   });
 });
+
+// ============================================
+// CMS DE PÁGINAS (Leitura pública / Escrita Dev)
+// ============================================
 
 // ============================================
 // GERENCIAMENTO DE CONTEÚDO (CMS)
 // ============================================
 
-// GET /api/admin/paginas/:slug (Ler conteúdo)
+// GET /api/dev/paginas/:slug (Ler conteúdo)
 router.get('/paginas/:slug', (req, res) => {
   const { slug } = req.params;
   db.get('SELECT conteudo FROM conteudo_paginas WHERE slug = ?', [slug], (err, row) => {
@@ -125,7 +166,7 @@ router.get('/paginas/:slug', (req, res) => {
   });
 });
 
-// POST /api/admin/paginas (Atualizar conteúdo)
+// POST /api/dev/paginas (Atualizar conteúdo)
 router.post('/paginas', verificarAdmin, (req, res) => {
   const { slug, conteudo } = req.body;
   

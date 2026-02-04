@@ -137,21 +137,11 @@ app.get('/', (req, res) => {
 // ROTAS DO ADMIN (PAINEL DO DESENVOLVEDOR)
 // ============================================
 
-// Rota de Login do Admin
-app.get('/devadmin/login/deveditor', (req, res) => {
-  const path = require('path');
-  res.sendFile(path.join(__dirname, 'frontend', 'admin-login.html'));
-});
-
-// Rota do Dashboard do Admin
-app.get('/devadmin/dashboard', (req, res) => {
-  const path = require('path');
-  res.sendFile(path.join(__dirname, 'frontend', 'admin-dashboard.html'));
-});
-
-// Importar e usar rotas da API Admin
-const adminRoutes = require('./backend/admin');
-app.use('/api/admin', adminRoutes);
+// Importar e usar rotas da API Dev (backend-only)
+const devRoutes = require('./backend/admin');
+app.use('/api/dev', devRoutes);
+// Compat: manter leitura de páginas para o frontend atual
+app.get('/api/admin/paginas/:slug', (req, res, next) => devRoutes.handle(req, res, next));
 
 
 // Rota para aceitar /frontend/* e servir do mesmo lugar que /*
@@ -243,11 +233,16 @@ app.post('/api/auth/registro', async (req, res) => {
     // 6. Gerar código de verificação (OTP) de 6 dígitos
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // 7. Inserir novo usuário no banco (is_verified = 0)
+    // 7. Gerar avatar padronizado (DiceBear) a partir do email
+    const crypto = require('crypto');
+    const seed = crypto.createHash('sha256').update(emailValidado.email).digest('hex').slice(0, 12);
+    const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}&backgroundType=gradient`;
+
+    // 8. Inserir novo usuário no banco (is_verified = 0)
     const resultado = await new Promise((resolver, rejeitar) => {
       db.run(
-        'INSERT INTO usuarios (email, nome, senha, is_verified, verification_code) VALUES (?, ?, ?, 0, ?)',
-        [emailValidado.email, nomeValidado.nome, senhaHash, verificationCode],
+        'INSERT INTO usuarios (email, nome, senha, is_verified, verification_code, avatar_url) VALUES (?, ?, ?, 0, ?, ?)',
+        [emailValidado.email, nomeValidado.nome, senhaHash, verificationCode, avatarUrl],
         function(erro) {
           if (erro) rejeitar(erro);
           else resolver({ id: this.lastID });
@@ -255,13 +250,13 @@ app.post('/api/auth/registro', async (req, res) => {
       );
     });
 
-    // 8. SIMULAÇÃO DE ENVIO DE EMAIL
+    // 9. SIMULAÇÃO DE ENVIO DE EMAIL
     console.log('==================================================');
     console.log(`📧 ENVIO DE EMAIL PARA: ${emailValidado.email}`);
     console.log(`🔑 CÓDIGO DE VERIFICAÇÃO: ${verificationCode}`);
     console.log('==================================================');
 
-    // 9. Retornar sucesso (sem token)
+    // 10. Retornar sucesso (sem token)
     res.status(201).json({
       mensagem: '✅ Registro realizado! Verifique seu email para ativar a conta.',
       precisaVerificar: true,
