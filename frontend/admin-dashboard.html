@@ -94,6 +94,7 @@
             
             <div class="form-group">
                 <select id="selectPagina" onchange="carregarConteudoPagina()">
+                    <option value="inicio">Página Início</option>
                     <option value="sobre">Página Sobre</option>
                     <option value="contato">Página Contato</option>
                 </select>
@@ -128,7 +129,10 @@
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             
             document.getElementById(id).classList.add('active');
-            event.target.classList.add('active');
+            // Ajustar item ativo de forma robusta
+            const item = Array.from(document.querySelectorAll('.menu-item'))
+                .find(i => i.textContent.includes(id === 'jogos' ? 'Gerenciar Jogos' : 'Editar Páginas'));
+            if (item) item.classList.add('active');
         }
 
         function logout() {
