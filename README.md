@@ -1,386 +1,122 @@
-# 🎮 GameStore - Loja de Jogos Online
+# Painel do Desenvolvedor (Backend-Only)
 
-## 📋 Descrição do Projeto
+Este guia explica como usar o painel de administração do Desenvolvedor via API (sem interface frontend). Todo acesso é feito por requisições HTTP autenticadas. 
 
-GameStore é um e-commerce completo de jogos digitais com sistema de autenticação, carrinho de compras, favoritos e pagamento integrado. O projeto foi desenvolvido para fins educacionais com comentários detalhados em português.
+## Visão Geral
+- Acesso restrito ao Dev por credenciais fortes (variáveis de ambiente).
+- Gestão de usuários, pedidos e conteúdo de páginas (CMS).
+- Sem exposição de senhas atuais dos usuários; apenas reset seguro.
+- Avatares gerados automaticamente para novos usuários.
 
----
+Arquivos relevantes:
+- Rotas do Dev: [admin.js](file:///c:/Users/MM10BP/Desktop/SITE%20DA%20LOJA/backend/admin.js)
+- Montagem das rotas: [server.js](file:///c:/Users/MM10BP/Desktop/SITE%20DA%20LOJA/server.js#L152-L155)
+- Avatar automático no registro: [server.js](file:///c:/Users/MM10BP/Desktop/SITE%20DA%20LOJA/server.js#L214-L260)
+- Migração da coluna avatar_url: [database.js](file:///c:/Users/MM10BP/Desktop/SITE%20DA%20LOJA/database.js#L101-L114)
 
-## ✅ O Que Já Foi Feito (v1.0 - Base)
+## Preparação
+1. Configure credenciais no ambiente de produção (Render):
+   - ADMIN_USER
+   - ADMIN_PASS
+2. Base URL:
+   - Produção: `https://caitosostore.onrender.com`
+   - Local: `http://localhost:3000`
 
-- [x] Estrutura HTML básica com 5 seções (Início, Jogos, Sobre, Contato, Rodapé)
-- [x] Estilos CSS responsivos e atraentes
-- [x] Funções JavaScript básicas (`comprarJogo()`, `enviarContato()`)
-- [x] Menu de navegação funcional
-- [x] Formulário de contato simples
-- [x] Grid de produtos com 3 jogos de exemplo
+## Autenticação
+Endpoint:
+- POST `/api/dev/login`
 
----
-
-## 🔄 O Que Será Alterado e Adicionado (v2.0 - Profissional)
-
-### **Backend & Banco de Dados**
-- [x] Servidor Node.js + Express (API RESTful)
-- [x] Banco de dados SQLite com 5 tabelas:
-  - `usuarios` (autenticação com hash de senha)
-  - `jogos` (catálogo com imagens reais)
-  - `carrinho` (itens do carrinho por usuário)
-  - `favoritos` (wishlist)
-  - `pedidos` (histórico de compras)
-
-### **Autenticação & Segurança**
-- [x] Sistema de login/registro com validação de email
-- [x] Validação de domínios reais (gmail.com, hotmail.com, outlook.com, etc)
-- [x] Hash de senhas com bcrypt (seguro)
-- [x] JWT para manter sessão do usuário
-- [x] Proteção de rotas (apenas usuários logados)
-
-### **Funcionalidades de Compra**
-- [x] Carrinho persistente (salvo no banco de dados)
-- [x] Sistema de favoritos/wishlist
-- [x] Catálogo com 15+ jogos reais com imagens
-- [x] Filtros por gênero e preço
-- [x] Avaliações e comentários (opcional)
-
-### **Sistema de Pagamento**
-- [x] Integração Stripe (cartão de crédito)
-- [x] Checkout realista
-- [x] Confirmação de pedido por email
-- [x] Histórico de pedidos
-
----
-
-## 📁 Estrutura do Projeto (Nova)
-
-```
-SITE DA LOJA/
-├── README.md                      # Este arquivo
-├── package.json                   # Dependências do Node.js
-├── .env                          # Variáveis de ambiente (secretos)
-├── server.js                     # Servidor principal (Express)
-├── database.js                   # Configuração SQLite
-├── database.db                   # Banco de dados (criado automaticamente)
-│
-├── /frontend                     # HTML, CSS, JS do cliente
-│   ├── index.html               # Página principal (atualizada)
-│   ├── style.css                # Estilos (aprimorado)
-│   ├── script.js                # JavaScript do cliente
-│   ├── login.html               # Página de login/registro
-│   ├── carrinho.html            # Página do carrinho
-│   ├── favoritos.html           # Página de favoritos
-│   ├── checkout.html            # Página de pagamento
-│   └── perfil.html              # Perfil do usuário
-│
-├── /backend                     # Lógica do servidor
-│   ├── auth.js                  # Autenticação (login/registro)
-│   ├── produtos.js              # CRUD de jogos
-│   ├── carrinho.js              # Lógica do carrinho
-│   ├── pagamento.js             # Integração Stripe
-│   └── validacoes.js            # Validação de email, senha
-│
-├── /public                      # Imagens e assets
-│   ├── /images                  # Capas dos jogos
-│   └── /css                     # Fontes e icons
-│
-└── /docs                        # Documentação
-    ├── API.md                   # Documentação da API
-    ├── BANCO_DE_DADOS.md       # Schema do banco
-    └── GUIA_INSTALACAO.md      # Como rodar o projeto
+Body:
+```json
+{ "usuario": "SEU_ADMIN_USER", "senha": "SEU_ADMIN_PASS" }
 ```
 
----
+Resposta:
+```json
+{ "sucesso": true, "token": "BASE64..." }
+```
 
-## 🛠️ Tecnologias Utilizadas
+Use o token nas próximas chamadas:
+- Header: `x-dev-token: <token>`
 
-### **Frontend**
-- HTML5 (semântico e bem comentado)
-- CSS3 (Flexbox, Grid, Responsivo)
-- JavaScript Vanilla (sem frameworks por enquanto)
-- Bootstrap Icons (para ícones bonitos)
+Observação: O token é simples (base64), trate como segredo e rotacione credenciais periodicamente.
 
-### **Backend**
-- Node.js (runtime JavaScript no servidor)
-- Express.js (framework web leve)
-- SQLite (banco de dados leve)
-- bcryptjs (hash de senhas)
-- jsonwebtoken (JWT para sessões)
-- nodemailer (envio de emails)
-- stripe (pagamentos online)
+## Usuários
+- Listar todos:
+  - GET `/api/dev/usuarios`
+  - Retorna id, email, nome, verificação, avatar_url, total de pedidos e soma de compras
+- Detalhar um usuário:
+  - GET `/api/dev/usuarios/:id`
+  - Retorna dados do usuário e lista de pedidos
+- Resetar senha (definir nova):
+  - POST `/api/dev/usuarios/:id/password`
+  - Body:
+    ```json
+    { "nova_senha": "UmaSenhaForte123!" }
+    ```
 
-### **Segurança**
-- Senhas com hash bcrypt
-- JWT para autenticação
-- HTTPS (em produção)
-- Validação de entrada (server-side)
-- CORS (controle de acesso)
+## Pedidos
+- Listar pedidos:
+  - GET `/api/dev/pedidos`
+  - Inclui dados do usuário (email, nome)
 
----
+## CMS de Páginas
+- Ler conteúdo:
+  - GET `/api/dev/paginas/:slug`
+  - Exemplos de slug: `inicio`, `sobre`, `contato`
+- Atualizar conteúdo:
+  - POST `/api/dev/paginas`
+  - Body:
+    ```json
+    { "slug": "sobre", "conteudo": "<h1>Sobre Nós</h1><p>Texto...</p>" }
+    ```
+  - Header: `x-dev-token` obrigatório
 
-## 📝 Como Usar Este Projeto
+Compatibilidade atual do frontend:
+- O site lê conteúdo em `/api/admin/paginas/:slug`. Mantivemos leitura pública compatível.
 
-### **Instalação**
+## Avatares Automáticos
+Novos usuários recebem um `avatar_url` gerado pelo DiceBear com base no email:
+- Exemplo: `https://api.dicebear.com/7.x/bottts/svg?seed=<seed>&backgroundType=gradient`
+
+## Exemplos (cURL)
+Substitua `BASE_URL` e credenciais.
 
 ```bash
-# 1. Entrar na pasta do projeto
-cd "c:\Users\MM10BP\Desktop\SITE DA LOJA"
+# Login
+curl -s -X POST "$BASE_URL/api/dev/login" \
+  -H "Content-Type: application/json" \
+  -d '{"usuario":"SEU_ADMIN_USER","senha":"SEU_ADMIN_PASS"}'
 
-# 2. Instalar dependências Node.js
-npm install
+# Guardar token em variável (PowerShell)
+$resp = Invoke-RestMethod -Method Post -Uri "$BASE_URL/api/dev/login" -ContentType "application/json" -Body '{"usuario":"SEU_ADMIN_USER","senha":"SEU_ADMIN_PASS"}'
+$token = $resp.token
 
-# 3. Criar arquivo .env com variáveis
-# (Ver seção Configuração abaixo)
+# Listar usuários
+curl -s "$BASE_URL/api/dev/usuarios" -H "x-dev-token: $token"
 
-# 4. Iniciar servidor
-npm start
+# Detalhar usuário 1
+curl -s "$BASE_URL/api/dev/usuarios/1" -H "x-dev-token: $token"
 
-# 5. Abrir no navegador
-# http://localhost:3000
+# Resetar senha
+curl -s -X POST "$BASE_URL/api/dev/usuarios/1/password" \
+  -H "Content-Type: application/json" -H "x-dev-token: $token" \
+  -d '{"nova_senha":"UmaSenhaForte123!"}'
+
+# Atualizar página 'sobre'
+curl -s -X POST "$BASE_URL/api/dev/paginas" \
+  -H "Content-Type: application/json" -H "x-dev-token: $token" \
+  -d '{"slug":"sobre","conteudo":"<h1>Sobre Nós</h1><p>Atualizado pela API.</p>"}'
 ```
 
-### **Configuração (.env)**
+## Segurança e Boas Práticas
+- Configure `ADMIN_USER` e `ADMIN_PASS` apenas no ambiente (Render), nunca no repositório.
+- Não compartilhe o token; revogue trocando as credenciais se necessário.
+- O reset de senha sempre grava hash; senhas atuais não são expostas.
+- Considere adicionar logs de auditoria para ações do Dev se desejar.
 
-Criar arquivo `.env` na raiz com:
+## Problemas Comuns
+- 401 Unauthorized: verifique `x-dev-token` ou credenciais.
+- 404 Not Found em páginas: garanta que `slug` existe ou envie via POST.
+- Conteúdo não atualiza na home: limpe cache do navegador ou aguarde rebuild.
 
-```
-PORT=3000
-NODE_ENV=development
-
-# Banco de dados
-DB_PATH=./database.db
-
-# JWT
-JWT_SECRET=sua_chave_secreta_super_segura_aqui
-
-# Email (Nodemailer)
-EMAIL_USER=seu_email@gmail.com
-EMAIL_PASSWORD=sua_senha_app_google
-
-# Stripe
-STRIPE_PUBLIC_KEY=pk_test_seu_token_publico
-STRIPE_SECRET_KEY=sk_test_seu_token_secreto
-```
-
----
-
-## 🎯 Ideias de Melhorias Futuras (v3.0+)
-
-### **Curto Prazo**
-- [ ] Sistema de cupons/descontos
-- [ ] Reviews e classificação de produtos
-- [ ] Filtros avançados (plataforma, gênero, preço)
-- [ ] Busca com autocomplete
-- [ ] Notificações por email
-
-### **Médio Prazo**
-- [ ] Dashboard admin para gerenciar produtos
-- [ ] Relatórios de vendas
-- [ ] Chat de suporte ao cliente
-- [ ] API para integrações (Steam, Epic Games)
-- [ ] App mobile (React Native ou Flutter)
-
-### **Longo Prazo**
-- [ ] Machine Learning para recomendações
-- [ ] Programa de afiliados
-- [ ] Sistema de assinatura
-- [ ] Social login (Google, GitHub, Discord)
-- [ ] Análise de comportamento do usuário
-
----
-
-## 📊 Tabelas do Banco de Dados
-
-### **usuarios**
-```
-id (PRIMARY KEY)
-email (UNIQUE) - validado
-nome
-senha (hash bcrypt)
-created_at (data criação)
-updated_at (última atualização)
-```
-
-### **jogos**
-```
-id (PRIMARY KEY)
-nome
-descricao
-preco (em reais)
-imagem_url (link da imagem real)
-genero (RPG, FPS, Estratégia, etc)
-plataforma (PC, PlayStation, Xbox, Nintendo)
-classificacao (E, 12, 16, 18)
-estoque (quantos deixar disponível)
-criado_em (timestamp)
-```
-
-### **carrinho**
-```
-id (PRIMARY KEY)
-usuario_id (FOREIGN KEY)
-jogo_id (FOREIGN KEY)
-quantidade
-adicionado_em (timestamp)
-```
-
-### **favoritos**
-```
-id (PRIMARY KEY)
-usuario_id (FOREIGN KEY)
-jogo_id (FOREIGN KEY)
-adicionado_em (timestamp)
-```
-
-### **pedidos**
-```
-id (PRIMARY KEY)
-usuario_id (FOREIGN KEY)
-valor_total
-status (pendente, pago, enviado, entregue, cancelado)
-stripe_payment_id
-criado_em (timestamp)
-atualizado_em (timestamp)
-```
-
----
-
-## 🔐 Fluxo de Autenticação
-
-```
-1. Usuário clica em "Registrar" ou "Login"
-2. Preenche email (validamos domínio: gmail.com, hotmail.com, etc)
-3. Preenche senha (mínimo 8 caracteres, validamos força)
-4. Enviamos para servidor → /api/auth/register ou /api/auth/login
-5. Servidor valida dados
-6. Se for novo usuário, criamos no banco de dados
-7. Geramos JWT (token que prova autenticação)
-8. Retornamos token ao frontend
-9. Frontend armazena token no localStorage
-10. Token é enviado em toda requisição autenticada
-11. Usuário consegue acessar carrinho, favoritos, checkout
-```
-
----
-
-## 🛒 Fluxo de Compra
-
-```
-1. Usuário navega pelos jogos
-2. Clica em "Adicionar ao Carrinho" → salva no banco
-3. Visualiza carrinho (pode aumentar/diminuir quantidade)
-4. Remove items se desejar
-5. Clica em "Ir para Checkout"
-6. Sistema valida carrinho (preço, estoque)
-7. Redireciona para Stripe (pagamento seguro)
-8. Usuário preenche dados do cartão
-9. Stripe confirma pagamento
-10. Criamos registro de pedido no banco
-11. Esvaziamos carrinho
-12. Enviamos email de confirmação
-13. Usuário consegue ver histórico de pedidos
-```
-
----
-
-## 📧 Validação de Email
-
-Aceitamos apenas domínios reais:
-```
-✅ usuario@gmail.com
-✅ pessoa@hotmail.com
-✅ cliente@outlook.com
-✅ gamer@yahoo.com
-❌ usuario@fake123.com
-❌ teste@seudominio.xyz (não verificado)
-```
-
-Usaremos a API `hunter.io` ou similar para validar existência do email.
-
----
-
-## 💳 Pagamento com Stripe
-
-O Stripe é a solução mais segura e profissional:
-- Dados do cartão nunca tocam nosso servidor
-- Criptografia end-to-end
-- Suporta múltiplos métodos (cartão, boleto, Pix em breve)
-- Dashboard para monitorar transações
-- Webhooks para confirmar pagamentos
-
----
-
-## 🚀 Próximos Passos
-
-1. ✅ Criar este README (você está lendo agora!)
-2. ⏳ Criar arquivo package.json
-3. ⏳ Instalar Node.js e dependências
-4. ⏳ Criar server.js (Express)
-5. ⏳ Criar database.js (SQLite)
-6. ⏳ Criar APIs de autenticação
-7. ⏳ Criar APIs de produtos
-8. ⏳ Atualizar HTML/CSS/JS frontend
-9. ⏳ Integrar Stripe
-10. ⏳ Testar tudo
-
----
-
-## 👨‍💻 Exemplo de Uso da API
-
-### **Registrar novo usuário**
-```bash
-POST /api/auth/register
-Body: {
-  "email": "joao@gmail.com",
-  "nome": "João Silva",
-  "senha": "SenhaForte123!"
-}
-Response: { "token": "jwt_token_aqui", "usuario": {...} }
-```
-
-### **Fazer login**
-```bash
-POST /api/auth/login
-Body: {
-  "email": "joao@gmail.com",
-  "senha": "SenhaForte123!"
-}
-Response: { "token": "jwt_token_aqui" }
-```
-
-### **Listar jogos**
-```bash
-GET /api/jogos
-Response: [
-  { "id": 1, "nome": "Cyberpunk 2077", "preco": 149.90, ... },
-  { "id": 2, "nome": "EA Sports FC 24", "preco": 209.90, ... }
-]
-```
-
-### **Adicionar ao carrinho**
-```bash
-POST /api/carrinho
-Headers: { "Authorization": "Bearer jwt_token" }
-Body: { "jogo_id": 1, "quantidade": 1 }
-Response: { "id": 1, "usuario_id": 1, "jogo_id": 1, "quantidade": 1 }
-```
-
----
-
-## 📞 Suporte
-
-Para dúvidas sobre o código:
-1. Verifique os comentários em português no código
-2. Consulte a documentação em `/docs`
-3. Abra uma issue no repositório
-
----
-
-## 📄 Licença
-
-Este projeto é para fins educacionais. Sinta-se livre para modificar e aprender com ele!
-
----
-
-**Versão Atual:** 2.0 (em desenvolvimento)  
-**Última atualização:** 04/02/2026  
-**Autor:** Seu Nome Aqui  
-**Status:** 🟠 Em Progresso
