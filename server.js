@@ -127,13 +127,10 @@ app.use('/api/pagamento/', limitador);
   ============================================
 */
 
-// Rota raiz = quando acessar http://localhost:3000/
+// Rota raiz = entregar a página principal da loja
 app.get('/', (req, res) => {
-  res.send(`
-    <h1>🎮 GameStore - Servidor Rodando!</h1>
-    <p>Frontend: <a href="/">Clique aqui para acessar</a></p>
-    <p>API disponível em /api/</p>
-  `);
+  const path = require('path');
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
 // Rota para aceitar /frontend/* e servir do mesmo lugar que /*
