@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "GameStore - Painel Dev (Backend)",
+    "_postman_id": "a3f8b9aa-0000-4000-9000-collection-dev-panel",
+    "description": "Coleção Postman para administrar usuários, pedidos e CMS via /api/dev",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://caitosostore.onrender.com" },
+    { "key": "adminUser", "value": "SEU_ADMIN_USER" },
+    { "key": "adminPass", "value": "SEU_ADMIN_PASS" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth - Login Dev",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/dev/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"usuario\":\"{{adminUser}}\",\"senha\":\"{{adminPass}}\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let data = {};",
+              "try { data = pm.response.json(); } catch(e) {}",
+              "if (data.token) {",
+              "  pm.collectionVariables.set('token', data.token);",
+              "}",
+              "pm.test('Token criado', function () {",
+              "  pm.expect(!!data.token).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuários - Listar",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "x-dev-token", "value": "{{token}}" }],
+        "url": "{{baseUrl}}/api/dev/usuarios"
+      }
+    },
+    {
+      "name": "Usuários - Detalhar (por id)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "x-dev-token", "value": "{{token}}" }],
+        "url": "{{baseUrl}}/api/dev/usuarios/1"
+      }
+    },
+    {
+      "name": "Usuários - Resetar senha",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-dev-token", "value": "{{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/dev/usuarios/1/password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nova_senha\":\"UmaSenhaF0rte!2026\"}"
+        }
+      }
+    },
+    {
+      "name": "Pedidos - Listar",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "x-dev-token", "value": "{{token}}" }],
+        "url": "{{baseUrl}}/api/dev/pedidos"
+      }
+    },
+    {
+      "name": "CMS - Ler página (sobre)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/dev/paginas/sobre"
+      }
+    },
+    {
+      "name": "CMS - Ler página (contato)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/dev/paginas/contato"
+      }
+    },
+    {
+      "name": "CMS - Ler página (inicio)",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/dev/paginas/inicio"
+      }
+    },
+    {
+      "name": "CMS - Atualizar página",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "x-dev-token", "value": "{{token}}" }
+        ],
+        "url": "{{baseUrl}}/api/dev/paginas",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"slug\":\"sobre\",\"conteudo\":\"<h1>Sobre Nós</h1><p>Atualizado via API Dev.</p>\"}"
+        }
+      }
+    }
+  ]
+}
