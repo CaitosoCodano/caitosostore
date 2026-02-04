@@ -82,7 +82,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"], // Permitir estilos externos (Google Fonts, Trumbowyg)
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:"], // Permitir imagens externas
-      connectSrc: ["'self'"] // APIs do próprio servidor
+      connectSrc: ["'self'", "https://cdnjs.cloudflare.com"] // APIs do próprio servidor e CDNs
     }
   }
 }));
