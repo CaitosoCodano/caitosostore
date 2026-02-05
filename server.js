@@ -143,12 +143,21 @@ app.use('/api/dev', devRoutes);
 // Compat: manter leitura de páginas para o frontend atual
 app.get('/api/admin/paginas/:slug', (req, res, next) => devRoutes.handle(req, res, next));
 
+// 404 para rotas inexistentes
+app.use((req, res) => {
+  const path = require('path');
+  if (req.method === 'GET' && req.accepts('html')) {
+    res.status(404).sendFile(path.join(__dirname, 'frontend', 'notfound.html'));
+  } else {
+    res.status(404).json({ erro: 'Recurso não encontrado' });
+  }
+});
+
 
 // Rota para aceitar /frontend/* e servir do mesmo lugar que /*
 app.get('/frontend/*', (req, res) => {
   // Pegar o caminho relativo (/login.html de /frontend/login.html)
   const caminhoArquivo = req.params[0]; // Pega tudo após /frontend/
-  const fs = require('fs');
   const path = require('path');
   
   const arquivoCompleto = path.join(__dirname, 'frontend', caminhoArquivo);

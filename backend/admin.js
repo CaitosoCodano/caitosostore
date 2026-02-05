@@ -61,9 +61,9 @@ router.post('/login', (req, res) => {
 // ============================================
 const verificarAdmin = (req, res, next) => {
   const token = req.headers['x-dev-token'] || req.headers['x-admin-token'];
-  
   if (!token) {
-    return res.status(403).json({ erro: 'Acesso negado. Token não fornecido.' });
+    // Camuflar rota protegida
+    return res.status(404).json({ erro: 'Recurso não encontrado' });
   }
 
   // Decodificar token e verificar usuario
@@ -75,7 +75,8 @@ const verificarAdmin = (req, res, next) => {
       throw new Error('Usuário inválido');
     }
   } catch (e) {
-    res.status(403).json({ erro: 'Token inválido.' });
+    // Camuflar rota protegida
+    res.status(404).json({ erro: 'Recurso não encontrado' });
   }
 };
 
