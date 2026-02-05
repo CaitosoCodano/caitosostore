@@ -107,6 +107,41 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(express.static('frontend'));
 
+// Autenticação por JWT (utilitário)
+function autenticarJWT(req, res, next) {
+  try {
+    const auth = req.headers.authorization || '';
+    const parts = auth.split(' ');
+    if (parts.length === 2 && parts[0] === 'Bearer') {
+      const jwt = require('jsonwebtoken');
+      const token = parts[1];
+      const payload = jwt.verify(token, process.env.JWT_SECRET || 'chave_secreta_padrao');
+      // Buscar usuário para obter is_dev
+      db.get('SELECT id, email, nome, is_dev FROM usuarios WHERE id = ?', [payload.id], (erro, row) => {
+        if (erro) return next();
+        if (row) {
+          req.usuario = row;
+          req.jwtToken = token;
+        }
+        next();
+      });
+    } else {
+      next();
+    }
+  } catch (e) {
+    next();
+  }
+}
+app.use(autenticarJWT);
+
+// Atualizar last_seen da sessão se houver token
+app.use((req, res, next) => {
+  if (req.jwtToken && req.usuario) {
+    db.run('UPDATE user_sessions SET last_seen = CURRENT_TIMESTAMP WHERE token = ?', [req.jwtToken]);
+  }
+  next();
+});
+
 // 6. Rate limiting = máximo de requisições por IP (evitar brute force)
 const limitador = rateLimit({
   // Janela de tempo: 15 minutos
@@ -152,6 +187,38 @@ app.get('/api/admin/paginas/:slug', (req, res) => {
   });
 });
 
+// ============================================
+// CONTATO (mensagens dos usuários)
+// ============================================
+app.post('/api/contato', async (req, res) => {
+  try {
+    const { nome, email, mensagem } = req.body || {};
+    if (!nome || !email || !mensagem) {
+      return res.status(400).json({ erro: 'Nome, email e mensagem são obrigatórios' });
+    }
+    const validator = require('validator');
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ erro: 'Email inválido' });
+    }
+    const usuarioId = req.usuario?.id || null;
+    await new Promise((resolve, reject) => {
+      db.run(
+        'INSERT INTO contact_messages (usuario_id, nome, email, mensagem) VALUES (?, ?, ?, ?)',
+        [usuarioId, nome, email, mensagem],
+        function (erro) {
+          if (erro) reject(erro);
+          else resolve();
+        }
+      );
+    });
+    res.status(201).json({ sucesso: true, mensagem: 'Mensagem enviada com sucesso' });
+  } catch (erro) {
+    console.error('❌ Erro ao salvar contato:', erro);
+    res.status(500).json({ erro: 'Falha ao enviar mensagem' });
+  }
+});
+
+// Salvar sessão no login
 
 // Rota para aceitar /frontend/* e servir do mesmo lugar que /*
 app.get('/frontend/*', (req, res) => {
@@ -391,6 +458,22 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRE || '7d' }
     );
 
+    // 3.1 Registrar sessão como online
+    try {
+      await new Promise((resolve, reject) => {
+        db.run(
+          'INSERT OR REPLACE INTO user_sessions (usuario_id, token, is_active, created_at, last_seen) VALUES (?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)',
+          [usuario.id, token],
+          function (e) {
+            if (e) reject(e);
+            else resolve();
+          }
+        );
+      });
+    } catch (e) {
+      console.error('⚠️ Não foi possível registrar sessão:', e.message);
+    }
+
     // 4. Retornar sucesso
     res.json({
       mensagem: '✅ Login realizado com sucesso!',
@@ -398,7 +481,8 @@ app.post('/api/auth/login', async (req, res) => {
       usuario: {
         id: usuario.id,
         email: usuario.email,
-        nome: usuario.nome
+        nome: usuario.nome,
+        is_dev: usuario.is_dev === 1
       }
     });
 
@@ -514,6 +598,64 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+// ============================================
+// PAINEL DO DEV (via JWT do usuário dev)
+// ============================================
+function exigirDev(req, res, next) {
+  if (req.usuario?.is_dev === 1) return next();
+  // Camuflar rota
+  return res.status(404).json({ erro: 'Recurso não encontrado' });
+}
+
+// Mensagens de contato
+app.get('/api/devpanel/messages', exigirDev, (req, res) => {
+  db.all('SELECT id, usuario_id, nome, email, mensagem, criado_em, status FROM contact_messages ORDER BY criado_em DESC LIMIT 200', [], (erro, rows) => {
+    if (erro) return res.status(500).json({ erro: 'Falha ao listar mensagens' });
+    res.json({ total: rows.length, mensagens: rows });
+  });
+});
+
+// Usuários online (últimos 5 minutos)
+app.get('/api/devpanel/online-users', exigirDev, (req, res) => {
+  db.all(
+    `SELECT s.usuario_id, u.email, u.nome, u.is_dev, s.last_seen
+     FROM user_sessions s
+     JOIN usuarios u ON u.id = s.usuario_id
+     WHERE s.is_active = 1
+       AND s.last_seen >= datetime('now', '-5 minutes')
+     ORDER BY s.last_seen DESC`,
+    [],
+    (erro, rows) => {
+      if (erro) return res.status(500).json({ erro: 'Falha ao listar usuários online' });
+      res.json({ total: rows.length, usuarios: rows });
+    }
+  );
+});
+
+// Pedidos e itens (sem dados sensíveis)
+app.get('/api/devpanel/orders', exigirDev, (req, res) => {
+  db.all(
+    `SELECT p.id, p.usuario_id, u.email, u.nome, p.valor_total, p.status, p.criado_em, p.atualizado_em
+     FROM pedidos p
+     LEFT JOIN usuarios u ON u.id = p.usuario_id
+     ORDER BY p.criado_em DESC
+     LIMIT 200`,
+    [],
+    (erro, pedidos) => {
+      if (erro) return res.status(500).json({ erro: 'Falha ao listar pedidos' });
+      db.all(
+        `SELECT ip.id, ip.pedido_id, ip.jogo_id, j.nome as jogo_nome, ip.quantidade, ip.preco_unitario
+         FROM itens_pedido ip
+         LEFT JOIN jogos j ON j.id = ip.jogo_id`,
+        [],
+        (erro2, itens) => {
+          if (erro2) return res.status(500).json({ erro: 'Falha ao listar itens' });
+          res.json({ pedidos, itens });
+        }
+      );
+    }
+  );
+});
 // ============================================
 // ROTAS DE PAGAMENTO - PIX
 // ============================================

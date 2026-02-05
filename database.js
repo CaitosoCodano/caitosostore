@@ -62,7 +62,10 @@ function criarTabelas() {
       is_verified INTEGER DEFAULT 0,
 
       -- Código de verificação (OTP)
-      verification_code TEXT
+      verification_code TEXT,
+
+      -- Flag de desenvolvedor (permissões elevadas)
+      is_dev INTEGER DEFAULT 0
     )
   `, (erro) => {
     if (erro) {
@@ -80,6 +83,13 @@ function criarTabelas() {
         db.run(`ALTER TABLE usuarios ADD COLUMN avatar_url TEXT`, (e2) => {
           if (e2) console.error('⚠️ Falha ao adicionar avatar_url:', e2.message);
           else console.log('✅ Coluna avatar_url adicionada');
+        });
+      }
+      const existeIsDev = cols.some(c => c.name === 'is_dev');
+      if (!existeIsDev) {
+        db.run(`ALTER TABLE usuarios ADD COLUMN is_dev INTEGER DEFAULT 0`, (e3) => {
+          if (e3) console.error('⚠️ Falha ao adicionar is_dev:', e3.message);
+          else console.log('✅ Coluna is_dev adicionada');
         });
       }
     }
@@ -300,6 +310,39 @@ function criarTabelas() {
     }
   });
 
+  // Tabela 9: MENSAGENS DE CONTATO
+  db.run(`
+    CREATE TABLE IF NOT EXISTS contact_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER,
+      nome TEXT NOT NULL,
+      email TEXT NOT NULL,
+      mensagem TEXT NOT NULL,
+      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'novo',
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+    )
+  `, (erro) => {
+    if (erro) console.error('❌ Erro ao criar tabela contact_messages:', erro.message);
+    else console.log('✅ Tabela contact_messages criada/verificada');
+  });
+
+  // Tabela 10: SESSÕES DE USUÁRIO (monitorar online)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER NOT NULL,
+      token TEXT UNIQUE NOT NULL,
+      criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_active INTEGER DEFAULT 1,
+      FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+    )
+  `, (erro) => {
+    if (erro) console.error('❌ Erro ao criar tabela user_sessions:', erro.message);
+    else console.log('✅ Tabela user_sessions criada/verificada');
+  });
+
   // Tabela 8: CONTEUDO_PAGINAS (Para o CMS do Admin)
   db.run(`
     CREATE TABLE IF NOT EXISTS conteudo_paginas (
@@ -353,6 +396,29 @@ db.serialize(() => {
   // Popular com dados iniciais
   setTimeout(() => {
     popularComDados();
+    // Criar conta do desenvolvedor se não existir (email técnico)
+    const devEmail = 'devvagnerofficial@dev.local';
+    const devNome = 'Dev Vagner Official';
+    const devHash = '$2a$10$d41NU14ne3.2wGTM3kEJeeE/uFfcUbfyTbXLZ2f3/Mnw8FdbbsyY2'; // hash bcrypt da senha fornecida
+    db.get('SELECT id FROM usuarios WHERE email = ?', [devEmail], (e1, row) => {
+      if (e1) {
+        console.error('⚠️ Falha ao verificar dev user:', e1.message);
+        return;
+      }
+      if (!row) {
+        db.run(
+          'INSERT INTO usuarios (email, nome, senha, is_verified, verification_code, avatar_url, is_dev) VALUES (?, ?, ?, 1, NULL, ?, 1)',
+          [devEmail, devNome, devHash, 'https://api.dicebear.com/7.x/bottts/svg?seed=devvagner&backgroundType=gradient'],
+          function(e2) {
+            if (e2) console.error('⚠️ Falha ao criar dev user:', e2.message);
+            else console.log('✅ Conta do desenvolvedor criada');
+          }
+        );
+      } else {
+        // Garantir flag is_dev ligada
+        db.run('UPDATE usuarios SET is_dev = 1 WHERE email = ?', [devEmail]);
+      }
+    });
   }, 500);
 });
 

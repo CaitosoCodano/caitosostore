@@ -531,8 +531,27 @@
                 return;
             }
 
-            // Simular envio (em produção, enviar para servidor)
-            alert(`✅ Obrigado, ${nome}! Sua mensagem foi enviada.`);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/contato', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    body: JSON.stringify({ nome, email, mensagem })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok) {
+                    alert(`✅ Obrigado, ${nome}! Sua mensagem foi enviada.`);
+                } else {
+                    alert(`❌ Erro ao enviar: ${data.erro || 'Falha desconhecida'}`);
+                    return;
+                }
+            } catch (e) {
+                alert(`❌ Erro de rede ao enviar mensagem`);
+                return;
+            }
 
             // Limpar formulário
             document.getElementById('nome').value = '';
