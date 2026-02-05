@@ -141,16 +141,15 @@ app.get('/', (req, res) => {
 const devRoutes = require('./backend/admin');
 app.use('/api/dev', devRoutes);
 // Compat: manter leitura de páginas para o frontend atual
-app.get('/api/admin/paginas/:slug', (req, res, next) => devRoutes.handle(req, res, next));
-
-// 404 para rotas inexistentes
-app.use((req, res) => {
-  const path = require('path');
-  if (req.method === 'GET' && req.accepts('html')) {
-    res.status(404).sendFile(path.join(__dirname, 'frontend', 'notfound.html'));
-  } else {
-    res.status(404).json({ erro: 'Recurso não encontrado' });
-  }
+app.get('/api/admin/paginas/:slug', (req, res) => {
+  const { slug } = req.params;
+  db.get('SELECT conteudo FROM conteudo_paginas WHERE slug = ?', [slug], (erro, row) => {
+    if (erro) {
+      console.error('❌ Erro ao buscar conteúdo de página:', erro.message);
+      return res.status(500).json({ erro: 'Erro ao buscar conteúdo' });
+    }
+    res.json({ conteudo: row ? row.conteudo : '' });
+  });
 });
 
 
@@ -158,6 +157,7 @@ app.use((req, res) => {
 app.get('/frontend/*', (req, res) => {
   // Pegar o caminho relativo (/login.html de /frontend/login.html)
   const caminhoArquivo = req.params[0]; // Pega tudo após /frontend/
+  const fs = require('fs');
   const path = require('path');
   
   const arquivoCompleto = path.join(__dirname, 'frontend', caminhoArquivo);
@@ -946,10 +946,20 @@ app.post('/api/pagamento/pix/simular/:pixPaymentId', limitador, async (req, res)
 // ============================================
 
 app.use((req, res) => {
-  res.status(404).json({
-    erro: '❌ Rota não encontrada',
-    rota: req.path
-  });
+  const path = require('path');
+  // Para APIs, sempre JSON
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({
+      erro: '❌ Rota não encontrada',
+      rota: req.path
+    });
+  }
+  // Para navegação web, página 404 amigável
+  if (req.method === 'GET' && req.accepts('html')) {
+    return res.status(404).sendFile(path.join(__dirname, 'frontend', 'notfound.html'));
+  }
+  // Fallback genérico
+  res.status(404).json({ erro: '❌ Recurso não encontrado' });
 });
 
 // ============================================
