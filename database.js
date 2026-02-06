@@ -85,6 +85,20 @@ function criarTabelas() {
           else console.log('✅ Coluna avatar_url adicionada');
         });
       }
+      const existeIsVerified = cols.some(c => c.name === 'is_verified');
+      if (!existeIsVerified) {
+        db.run(`ALTER TABLE usuarios ADD COLUMN is_verified INTEGER DEFAULT 0`, (e2b) => {
+          if (e2b) console.error('⚠️ Falha ao adicionar is_verified:', e2b.message);
+          else console.log('✅ Coluna is_verified adicionada');
+        });
+      }
+      const existeVerificationCode = cols.some(c => c.name === 'verification_code');
+      if (!existeVerificationCode) {
+        db.run(`ALTER TABLE usuarios ADD COLUMN verification_code TEXT`, (e2c) => {
+          if (e2c) console.error('⚠️ Falha ao adicionar verification_code:', e2c.message);
+          else console.log('✅ Coluna verification_code adicionada');
+        });
+      }
       const existeIsDev = cols.some(c => c.name === 'is_dev');
       if (!existeIsDev) {
         db.run(`ALTER TABLE usuarios ADD COLUMN is_dev INTEGER DEFAULT 0`, (e3) => {

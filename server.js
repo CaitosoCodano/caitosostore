@@ -168,9 +168,17 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 
+const faviconBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAOssHoEAAAAASUVORK5CYII=';
+const faviconBuffer = Buffer.from(faviconBase64, 'base64');
+app.get('/favicon.ico', (req, res) => {
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.type('image/png');
+  res.send(faviconBuffer);
+});
 // ============================================
 // ROTAS DO ADMIN (PAINEL DO DESENVOLVEDOR)
 // ============================================
+
 
 // Importar e usar rotas da API Dev (backend-only)
 const devRoutes = require('./backend/admin');
